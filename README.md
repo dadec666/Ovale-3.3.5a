@@ -8,7 +8,7 @@ A modernized, heavily optimized, and refactored version of the **Ovale Spell Pri
 
 ---
 
-## What's New in v3.3.35-modernized-1.0.0
+## What's New in v3.3.35-modernized-1.0.1
 
 ### 1. Performance & Engine Optimizations
 - **Throttled Simulation Loop:** Replaced heavy per-frame calculations with a responsive `0.05s` interval ticker, drastically decreasing script execution time and eliminating framerate drops in 25-man raids.
