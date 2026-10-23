@@ -1,0 +1,34 @@
+﻿## Interface: 30300
+## Title: Ovale Spell Priority
+## Notes: Show the icon of the next spell to cast
+## Notes-ruRU: Отображает значок следующего заклинания для применения
+## Notes-frFR: Affiche l'icône du prochain sort à lancer
+## Author: Sidoine
+## Version: 3.3.35-modernized
+## OptionalDeps: Ace3, ButtonFacade, Masque, Recount, LibBabble-CreatureType-3.0, LibDualSpec-1.0
+## SavedVariables: OvaleDB
+## SavedVariablesPerCharacter: OvaleDBPC
+## X-Category: Combat
+## X-Embeds: Ace3
+
+embeds.xml
+Locale-enUS.lua
+Locale-ruRU.lua
+Locale-frFR.lua
+Ovale.lua
+Condition.lua
+OvaleIcone.lua
+OvaleIcone.xml
+OvaleFrame.lua
+OvaleCompile.lua
+OvaleRecount.lua
+defaut\Chaman.lua
+defaut\Chasseur.lua
+defaut\Demoniste.lua
+defaut\Druide.lua
+defaut\Guerrier.lua
+defaut\Mage.lua
+defaut\Paladin.lua
+defaut\Pretre.lua
+defaut\Voleur.lua
+defaut\Chevalier.lua
