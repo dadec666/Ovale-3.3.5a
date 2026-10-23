@@ -1,145 +1,226 @@
 Ovale.defaut["SHAMAN"] =
 [[
-Define(CHAINLIGHTNING 421)
-Define(LIGHTNINGBOLT 548)
-Define(LAVABURST 51505)
-Define(WATERSHIELD 52127)
-Define(FLAMESHOCK 8050)
-Define(FLAMETHONG 8024)
-Define(WINDFURYWEAPON 8232)
-Define(EARTHSHOCK 8042)
+# --- Spells & Abilities Definitions ---
+# Elemental / Common Spells
+Define(LIGHTNINGBOLT 49238)
+Define(CHAINLIGHTNING 49271)
+Define(LAVABURST 60043)
+Define(FLAMESHOCK 49233)
+Define(EARTHSHOCK 49231)
+Define(FROSTSHOCK 49236)
+Define(THUNDERSTORM 59159)
+Define(ELEMENTALMASTERY 16166)
+
+# Enhancement Spells
 Define(STORMSTRIKE 17364)
 Define(LAVALASH 60103)
-Define(LIGHTNINGSHIELD 324)
-Define(MAELSTROMWEAPON 53817)
-Define(ELEMENTALMASTERY 16166)
-Define(SHAMANISTICRAGE 30823)
-Define(THUNDERSTORM 51490)
+Define(FIRENOVA 61657)
 Define(FERALSPIRIT 51533)
-Define(HEROISM 32182)
-Define(BLOODLUST 2825)
-Define(TALENTFLURRY 602)
-Define(TALENTCALLOFTHUNDER 562)
-Define(FIRENOVA 1535)
+Define(SHAMANISTICRAGE 30823)
 
-#Fire
-Define(TOTEMOFWRATH 30706)
-Define(FIREELEMENTALTOTEM 2894)
-Define(FLAMETONGTOTEM 8227)
-Define(FROSTRESISTANCETOTEM 8181)
-Define(MAGMATOTEM 8190)
-Define(SEARINGTOTEM 3599)
-#Water
-Define(CLEANSINGTOTEM 8170)
-Define(FIRERESISTANCETOTEM 8184)
-Define(HEALINGSTREAMTOTEM 5394)
-Define(MANASPRINGTOTEM 5675)
-#Air
-Define(GROUNDINGTOTEM 8177)
-Define(NATURERESISTANCETOTEM 10595)
-Define(WINDFURYTOTEM 8512)
-Define(WRATHOFAIRTOTEM 3738)
-#Earth
-Define(STONESKINTOTEM 8071)
-Define(STRENGTHOFEARTHTOTEM 8075)
-Define(TREMORTOTEM 8143)
+# Shields
+Define(LIGHTNINGSHIELD 49281)
+Define(WATERSHIELD 57960)
 
-AddCheckBox(aoe L(AOE))
-AddCheckBox(chain SpellName(CHAINLIGHTNING) default talent=TALENTCALLOFTHUNDER)
-AddCheckBox(firenova SpellName(MAGMATOTEM))
+# Healing fallback
+Define(HEALINGWAVE 49273)
 
+# Buffs, Debuffs & Procs
+Define(MAELSTROMWEAPON 53817)   # Maelstrom Weapon (stacks 1-5)
+Define(STORMSTRIKEDEBUFF 17364) # +20% nature damage charges
+Define(CLEARCASTING 16246)
+
+# Talents
+Define(TALENTLAVABURST 2073)
+Define(TALENTSTORMSTRIKE 901)
+Define(TALENTFERALSPIRIT 2263)
+
+# Spell details for Ovale simulator
 SpellInfo(LAVABURST cd=8)
-SpellInfo(CHAINLIGHTNING cd=6)
-SpellAddBuff(LIGHTNINGBOLT MAELSTROMWEAPON=0)
-SpellAddBuff(CHAINLIGHTNING MAELSTROMWEAPON=0)
-SpellAddTargetDebuff(FLAMESHOCK FLAMESHOCK=18)
-ScoreSpells(WATERSHIELD FLAMESHOCK LAVABURST CHAINLIGHTNING LIGHTNINGBOLT LAVALASH EARTHSHOCK LIGHTNINGSHIELD
-	STORMSTRIKE)
-SpellInfo(EARTHSHOCK cd=6 sharedcd=shock)
-SpellInfo(FLAMESHOCK cd=6 sharedcd=shock)
-SpellAddBuff(LIGHTNINGSHIELD LIGHTNINGSHIELD=600)
-SpellAddBuff(WATERSHIELD WATERSHIELD=600)
-SpellInfo(LAVALASH cd=6)
 SpellInfo(STORMSTRIKE cd=8)
-SpellInfo(FIRENOVA cd=10)
-SpellInfo(MAGMATOTEM cd=20)
+SpellInfo(LAVALASH cd=6)
+SpellInfo(FIRENOVA cd=3)
+SpellInfo(CHAINLIGHTNING cd=3)
+SpellInfo(FLAMESHOCK duration=18 cd=6 sharedcd=shock)
+SpellInfo(EARTHSHOCK cd=6 sharedcd=shock)
+SpellInfo(FROSTSHOCK cd=6 sharedcd=shock)
+SpellInfo(FERALSPIRIT cd=180)
+SpellInfo(SHAMANISTICRAGE cd=60)
+SpellInfo(ELEMENTALMASTERY cd=180)
 
+SpellAddTargetDebuff(FLAMESHOCK FLAMESHOCK=18)
+SpellAddTargetDebuff(STORMSTRIKE STORMSTRIKEDEBUFF=12)
+
+# --- UI Controls ---
+AddListItem(mode raid "Raid / Dungeon" default)
+AddListItem(mode level "Leveling / Solo")
+
+AddListItem(shield lightning "Lightning Shield" default)
+AddListItem(shield water "Water Shield (Mana Regen)")
+
+AddListItem(aoe single "Single Target" default)
+AddListItem(aoe aoe "AOE / Multi-Target")
+
+AddCheckBox(cl "Use Chain Lightning (Single Target)" checked)
+AddCheckBox(burst "Auto Feral Spirit / Ele Mastery" checked)
+AddCheckBox(heal "Heal on 5 Maelstrom Stacks" checked)
+
+# --- Icons Layout ---
+
+# 1. Main Action Icon
 AddIcon help=main
 {
-	unless TalentPoints(TALENTFLURRY more 0)
+	# Проверка поддержания активного щита
+	if List(shield lightning) and BuffExpires(LIGHTNINGSHIELD 2) Spell(LIGHTNINGSHIELD)
+	if List(shield water) and BuffExpires(WATERSHIELD 2) Spell(WATERSHIELD)
+
+	# =========================================================
+	# 1. LEVELING / SOLO (Квесты, гринд, прокачка)
+	# =========================================================
+	if List(mode level)
 	{
-		unless InCombat()
+		# Экстренное мгновенное исцеление Энха при 5 стаках Водоворота
+		if CheckBoxOn(heal) and LifePercent(less 50) and BuffPresent(MAELSTROMWEAPON stacks=5)
 		{
-			if WeaponEnchantExpires(mainhand 400) Spell(FLAMETHONG)
+			Spell(HEALINGWAVE)
 		}
-		if BuffExpires(WATERSHIELD 2) Spell(WATERSHIELD)
-		if CheckBoxOn(firenova)
+
+		# Энх: мгновенная Молния на 5 стаках Водоворота
+		if BuffPresent(MAELSTROMWEAPON stacks=5)
 		{
-			if TotemExpires(fire) Spell(MAGMATOTEM)
-			unless TotemExpires(fire) Spell(FIRENOVA)
-			if ManaPercent(less 90) Spell(THUNDERSTORM)
+			Spell(LIGHTNINGBOLT)
 		}
-		if CheckBoxOn(aoe) Spell(CHAINLIGHTNING)
-		if TargetDebuffExpires(FLAMESHOCK 0 mine=1) Spell(FLAMESHOCK)
-		unless TargetDebuffExpires(FLAMESHOCK 1.6 haste=spell mine=1) Spell(LAVABURST)
-		
-		if CheckBoxOn(chain) and CastTime(LIGHTNINGBOLT more 1.5) and at least 0s from Spell(LAVABURST) until EndCastTime(CHAINLIGHTNING)
-				Spell(CHAINLIGHTNING)
+
+		# Элем: Выброс лавы strictly под Огненный шок
+		if TargetDebuffPresent(FLAMESHOCK mine=1) and Spell(LAVABURST)
+		{
+			Spell(LAVABURST)
+		}
+
+		# Удары ближнего боя Энха
+		if Spell(STORMSTRIKE) Spell(STORMSTRIKE)
+		if Spell(LAVALASH) Spell(LAVALASH)
+
+		# Поддержание Огненного шока
+		if TargetDeadIn(more 6) and TargetDebuffExpires(FLAMESHOCK 2 mine=1) and Spell(FLAMESHOCK)
+		{
+			Spell(FLAMESHOCK)
+		}
+
+		# Земной шок на добивание / прерывание
+		if TargetDebuffPresent(FLAMESHOCK mine=1) and Spell(EARTHSHOCK)
+		{
+			Spell(EARTHSHOCK)
+		}
+
+		# Базовый филлер дальнего боя
 		Spell(LIGHTNINGBOLT)
 	}
-	if TalentPoints(TALENTFLURRY more 0)
+
+	# =========================================================
+	# 2. RAID / DUNGEON
+	# =========================================================
+	if List(mode raid)
 	{
-		#Changes by rsriv
-		unless InCombat()
+		# -----------------------------------------------------
+		# ELEMENTAL SPEC (Шаман стихий)
+		# -----------------------------------------------------
+		if TalentPoints(TALENTLAVABURST more 0)
 		{
-			if WeaponEnchantExpires(mainhand 400) Spell(WINDFURYWEAPON)
-			if WeaponEnchantExpires(offhand 400) Spell(FLAMETONGUE)
+			# Бурст: Покорение стихий
+			if CheckBoxOn(burst) and Spell(ELEMENTALMASTERY) Spell(ELEMENTALMASTERY)
+
+			# ПРИОРИТЕТ 1: Огненный шок (Flame Shock) — база для 100% крита Лавы
+			if TargetDebuffExpires(FLAMESHOCK 1.5 mine=1) and Spell(FLAMESHOCK)
+			{
+				Spell(FLAMESHOCK)
+			}
+
+			# ПРИОРИТЕТ 2: Выброс лавы (Lava Burst) строго по откату
+			if TargetDebuffPresent(FLAMESHOCK mine=1) and Spell(LAVABURST)
+			{
+				Spell(LAVABURST)
+			}
+
+			# ПРИОРИТЕТ 3: Цепная молния (в АОЕ или если включена в соло)
+			if (List(aoe aoe) or CheckBoxOn(cl)) and Spell(CHAINLIGHTNING) and ManaPercent(more 30)
+			{
+				Spell(CHAINLIGHTNING)
+			}
+
+			# ПРИОРИТЕТ 4: Филлер — Молния (Lightning Bolt)
+			Spell(LIGHTNINGBOLT)
 		}
 
-		if CheckBoxOn(aoe)
+		# -----------------------------------------------------
+		# ENHANCEMENT SPEC (Совершенствование / Энх)
+		# -----------------------------------------------------
+		if TalentPoints(TALENTSTORMSTRIKE more 0)
 		{
-			if TotemExpires(fire) Spell(MAGMATOTEM)
-			unless TotemExpires(fire) Spell(FIRENOVA)
-			if BuffPresent(MAELSTROMWEAPON stacks=5) Spell(CHAINLIGHTNING)
+			# Бурст: Волки (Feral Spirit)
+			if CheckBoxOn(burst) and Spell(FERALSPIRIT) Spell(FERALSPIRIT)
+
+			# ПРИОРИТЕТ 1: Молния при 5 стаках Оружия Водоворота (Maelstrom Weapon)
+			if BuffPresent(MAELSTROMWEAPON stacks=5)
+			{
+				Spell(LIGHTNINGBOLT)
+			}
+
+			# ПРИОРИТЕТ 2: Удар бури (Stormstrike)
+			if Spell(STORMSTRIKE) Spell(STORMSTRIKE)
+
+			# ПРИОРИТЕТ 3: Огненный шок (если спал)
+			if TargetDebuffExpires(FLAMESHOCK 1.5 mine=1) and Spell(FLAMESHOCK)
+			{
+				Spell(FLAMESHOCK)
+			}
+
+			# ПРИОРИТЕТ 4: Земной шок (Earth Shock под дебафф Stormstrike)
+			if TargetDebuffPresent(FLAMESHOCK mine=1) and Spell(EARTHSHOCK)
+			{
+				Spell(EARTHSHOCK)
+			}
+
+			# ПРИОРИТЕТ 5: Вскипание лавы (Lava Lash)
+			if Spell(LAVALASH) Spell(LAVALASH)
+
+			# ПРИОРИТЕТ 6: Кольцо огня (Fire Nova)
+			if Spell(FIRENOVA) and ManaPercent(more 25)
+			{
+				Spell(FIRENOVA)
+			}
+
+			# ПРИОРИТЕТ 7: Молния при 3-4 стаках Водоворота (только при простое других скилов)
+			if BuffPresent(MAELSTROMWEAPON stacks=3) and Spell(STORMSTRIKE) == nil and Spell(LAVALASH) == nil
+			{
+				Spell(LIGHTNINGBOLT)
+			}
 		}
 
-		if BuffPresent(MAELSTROMWEAPON stacks=5) Spell(LIGHTNINGBOLT)
-		if TargetDebuffExpires(FLAMESHOCK 2 haste=spell mine=1) Spell(FLAMESHOCK)
-		if TargetDebuffExpires(STORMSTRIKE) Spell(STORMSTRIKE)
-		if BuffExpires(LIGHTNINGSHIELD) Spell(LIGHTNINGSHIELD)
-		if TotemExpires(fire) Spell(MAGMATOTEM)
-		Spell(FERALSPIRIT)
-		Spell(SHAMANISTICRAGE)
-		Spell(EARTHSHOCK)
-		Spell(STORMSTRIKE)
-		Spell(LAVALASH)
-		Spell(FIRENOVA)
-		Spell(MAGMATOTEM priority=2)
-		Spell(LIGHTNINGSHIELD priority=2) 
+		# -----------------------------------------------------
+		# RESTORATION / FALLBACK
+		# -----------------------------------------------------
+		if TalentPoints(TALENTLAVABURST 0) and TalentPoints(TALENTSTORMSTRIKE 0)
+		{
+			if TargetDebuffExpires(FLAMESHOCK 1.5 mine=1) and Spell(FLAMESHOCK) Spell(FLAMESHOCK)
+			Spell(LIGHTNINGBOLT)
+		}
 	}
 }
 
-AddIcon help=cd
+# 2. Off-GCD / Utility Icon (Shamanistic Rage & Buffs)
+AddIcon size=small help=cd
 {
-	Spell(ELEMENTALMASTERY)
-	Spell(FERALSPIRIT)
-	Item(Trinket0Slot usable=1)
-	Item(Trinket1Slot usable=1)
-	Spell(FIREELEMENTALTOTEM)
-}
-
-AddIcon size=small help=mana
-{
-	if ManaPercent(less 25)
+	# Шаманская ярость (Энх) при просадке маны ниже 40% или для снижения урона
+	if TalentPoints(TALENTSTORMSTRIKE more 0) and ManaPercent(less 40) and Spell(SHAMANISTICRAGE)
+	{
 		Spell(SHAMANISTICRAGE)
-	if ManaPercent(less 50)
+	}
+
+	# Гром и молния (Элем) при нехватке маны
+	if TalentPoints(TALENTLAVABURST more 0) and ManaPercent(less 30) and Spell(THUNDERSTORM)
+	{
 		Spell(THUNDERSTORM)
+	}
 }
-
-AddIcon size=small
-{
-	Spell(HEROISM)
-	Spell(BLOODLUST)	
-}
-
 ]]
