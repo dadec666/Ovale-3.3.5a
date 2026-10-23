@@ -23,10 +23,10 @@ Define(SHADOWFLAME 61290)
 Define(DEMONICEMPOWERMENT 47193)
 
 # Buffs & Procs
-Define(MOLTENCORE 71165)       # Molten Core
-Define(DECIMATION 63167)       # Decimation (<35%)
-Define(GLYPHOFLIFETAP 63321)   # Glyph of Life Tap
-Define(SHADOWTRANCE 17941)     # Nightfall / Shadow Trance
+Define(MOLTENCORE 71165)       # Огненные недра
+Define(DECIMATION 63167)       # Истребление (<35%)
+Define(GLYPHOFLIFETAP 63321)   # Бафф символа жизнеотвода
+Define(SHADOWTRANCE 17941)     # Сумерки (Nightfall)
 
 # Talents
 Define(TALENTDEMONICEMPOWERMENT 1880)
@@ -56,49 +56,80 @@ SpellAddTargetDebuff(CURSEOFAGONY CURSEOFAGONY=24)
 SpellAddTargetDebuff(HAUNT HAUNT=12)
 SpellAddTargetDebuff(UNSTABLEAFFLICTION UNSTABLEAFFLICTION=15)
 
-# --- UI Controls (Локализуемые ключи L[...]) ---
-AddListItem(mode level L["Leveling / Solo"] default)
-AddListItem(mode raid L["Raid / Dungeon"])
+# --- UI Controls ---
+AddListItem(mode level "Leveling / Solo" default)
+AddListItem(mode raid "Raid / Dungeon")
 
-AddListItem(curse agony L["Curse of Agony"] default)
-AddListItem(curse doom L["Curse of Doom"])
-AddListItem(curse elements L["Curse of the Elements"])
+AddListItem(curse agony "Curse of Agony" default)
+AddListItem(curse doom "Curse of Doom")
+AddListItem(curse elements "Curse of the Elements")
 
-AddListItem(position ranged L["Ranged Position"] default)
-AddListItem(position melee L["Melee / Close Range"])
+AddListItem(position ranged "Ranged Position" default)
+AddListItem(position melee "Melee / Close Range")
 
-AddCheckBox(drain L["Execute Drain Soul"] checked)
-AddCheckBox(lifetap L["Maintain Life Tap Buff"] checked)
-AddCheckBox(meta L["Auto Metamorphosis"] checked)
-AddCheckBox(petemp L["Demonic Empowerment"] checked)
+AddCheckBox(drain "Execute Drain Soul" checked)
+AddCheckBox(lifetap "Maintain Life Tap Buff" checked)
+AddCheckBox(meta "Auto Metamorphosis" checked)
+AddCheckBox(petemp "Demonic Empowerment" checked)
 
 # --- Icons Layout ---
 
-# 1. Основное действие (Основная рамка + полупрозрачная очередь следующего спелла)
+# 1. Основное действие (Основная рамка + авто-очередь следующего заклинания)
 AddIcon help=main
 {
-	# ВЕТКА ПРОКАЧКИ
+	# =========================================================
+	# ВЕТКА: ПРОКАЧКА / СОЛО
+	# =========================================================
 	if List(mode level)
 	{
-		if CheckBoxOn(drain) and TargetLifePercent(less 25) Spell(DRAINSOUL)
-		if TargetLifePercent(less 20) and Spell(SHADOWBURN) Spell(SHADOWBURN)
-		if BuffPresent(DECIMATION) Spell(SOULFIRE)
-		if BuffPresent(SHADOWTRANCE) Spell(SHADOWBOLT)
-		if BuffPresent(MOLTENCORE) Spell(INCINERATE)
+		# Добивание Похищением души ради осколков и маны
+		if CheckBoxOn(drain) and TargetLifePercent(less 25)
+		{
+			Spell(DRAINSOUL)
+		}
 
+		# Быстрое добивание Ожогом Тьмы
+		if TargetLifePercent(less 20) and Spell(SHADOWBURN)
+		{
+			Spell(SHADOWBURN)
+		}
+
+		# Прок Истребления (Ожог души)
+		if BuffPresent(DECIMATION)
+		{
+			Spell(SOULFIRE)
+		}
+
+		# Прок Сумерек (мгновенная Стрела Тьмы)
+		if BuffPresent(SHADOWTRANCE)
+		{
+			Spell(SHADOWBOLT)
+		}
+
+		# Слив прока Огненных недр в Испепеление
+		if BuffPresent(MOLTENCORE)
+		{
+			Spell(INCINERATE)
+		}
+
+		# Наложение ДоТ на живую цель
 		if TargetDebuffExpires(CORRUPTION 2 mine=1) Spell(CORRUPTION)
 		if List(curse agony) and TargetDebuffExpires(CURSEOFAGONY 2 mine=1) Spell(CURSEOFAGONY)
 		if TargetDebuffExpires(IMMOLATE 2 mine=1) and TargetLifePercent(more 30) Spell(IMMOLATE)
 
+		# Базовый филлер
 		Spell(SHADOWBOLT)
 	}
 
-	# ВЕТКА РЕЙДА
+	# =========================================================
+	# ВЕТКА: РЕЙД / ПОДЗЕМЕЛЬЕ
+	# =========================================================
 	if List(mode raid)
 	{
+		# Бафф символа жизнеотвода (СПД)
 		if CheckBoxOn(lifetap) and BuffExpires(GLYPHOFLIFETAP 2) Spell(LIFETAP)
 
-		# Demonology
+		# 1. ДЕМОНОЛОГИЯ
 		if TalentPoints(TALENTMETAMORPHOSIS more 0)
 		{
 			if CheckBoxOn(meta) and Spell(METAMORPHOSIS) Spell(METAMORPHOSIS)
@@ -114,14 +145,22 @@ AddIcon help=main
 
 			if List(curse elements) and TargetDebuffExpires(CURSEOFELEMENTS 3) Spell(CURSEOFELEMENTS)
 			if List(curse doom) and TargetDebuffExpires(CURSEOFDOOM 0 mine=1) and TargetDeadIn(more 60) Spell(CURSEOFDOOM)
-			if List(curse agony) and TargetDebuffExpires(CURSEOFAGONY 2 mine=1) Spell(CURSEOFAGONY)
+			if List(curse agony) and TargetDebuffExpires(CURSEOFAGONY 2 mine=1) and TargetDebuffExpires(CURSEOFDOOM 0 mine=1) Spell(CURSEOFAGONY)
 
-			if BuffPresent(DECIMATION) or TargetLifePercent(less 35) Spell(SOULFIRE)
-			if BuffPresent(MOLTENCORE) Spell(INCINERATE)
+			if BuffPresent(DECIMATION) or TargetLifePercent(less 35)
+			{
+				Spell(SOULFIRE)
+			}
+
+			if BuffPresent(MOLTENCORE)
+			{
+				Spell(INCINERATE)
+			}
+
 			Spell(SHADOWBOLT)
 		}
 
-		# Affliction
+		# 2. КОЛДОВСТВО (АФЛИ)
 		if TalentPoints(TALENTHAUNT more 0)
 		{
 			if TargetLifePercent(less 25)
@@ -144,7 +183,7 @@ AddIcon help=main
 			Spell(SHADOWBOLT)
 		}
 
-		# Destruction
+		# 3. РАЗРУШЕНИЕ (ДЕСТРО)
 		if TalentPoints(TALENTCHAOSBOLT more 0)
 		{
 			if TargetDebuffExpires(IMMOLATE 2.0 mine=1) Spell(IMMOLATE)
@@ -153,20 +192,20 @@ AddIcon help=main
 
 			if List(curse elements) and TargetDebuffExpires(CURSEOFELEMENTS 3) Spell(CURSEOFELEMENTS)
 			if List(curse doom) and TargetDebuffExpires(CURSEOFDOOM 0 mine=1) and TargetDeadIn(more 60) Spell(CURSEOFDOOM)
-			if List(curse agony) and TargetDebuffExpires(CURSEOFAGONY 2 mine=1) Spell(CURSEOFAGONY)
+			if List(curse agony) and TargetDebuffExpires(CURSEOFAGONY 2 mine=1) and TargetDebuffExpires(CURSEOFDOOM 0 mine=1) Spell(CURSEOFAGONY)
 
 			if TargetDebuffExpires(CORRUPTION 2 mine=1) Spell(CORRUPTION)
 			Spell(INCINERATE)
 		}
 
-		# Fallback
+		# Fallback для гибридов
 		if TargetDebuffExpires(CORRUPTION 2 mine=1) Spell(CORRUPTION)
 		if TargetDebuffExpires(IMMOLATE 2 mine=1) Spell(IMMOLATE)
 		Spell(SHADOWBOLT)
 	}
 }
 
-# 2. Маленькая иконка 1: Бурст / Бафф пета
+# 2. Маленькая рамка 1: Кулдауны и усиление демона
 AddIcon size=small help=cd
 {
 	if CheckBoxOn(petemp) and Spell(DEMONICEMPOWERMENT) and PetPresent(yes)
@@ -175,7 +214,7 @@ AddIcon size=small help=cd
 	}
 }
 
-# 3. Маленькая иконка 2: Мана и жизнеотвод
+# 3. Маленькая рамка 2: Ресурс и жизнеотвод
 AddIcon size=small help=mana
 {
 	if ManaPercent(less 35) and LifePercent(more 45)
