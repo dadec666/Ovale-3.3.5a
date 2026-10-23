@@ -202,18 +202,18 @@ local function subtest(text, pattern, func)
 	return text
 end
 
-local function ParseAddListItem(list,item,text, default)
+local function ParseAddListItem(list, item, text, params)
 	local paramList = ParseParameters(params)
 	if (paramList.talent and not HasTalent(paramList.talent)) or
 		(paramList.glyph and not HasGlyph(paramList.glyph)) then
 		return ""
 	end
 	if (not Ovale.listes[list]) then
-		Ovale.listes[list] = {items={},default=nil}
+		Ovale.listes[list] = {items={}, default=nil}
 	end
-	Ovale.listes[list].items[item] = Ovale.L[text] or text
+	Ovale.listes[list].items[item] = L[text] or text
 	if paramList[1] and paramList[1] == "default" then
-		Ovale.listes[list].default=item
+		Ovale.listes[list].default = item
 	end
 	return ""
 end
@@ -224,10 +224,8 @@ local function ParseAddCheckBox(item, text, params)
 		(paramList.glyph and not HasGlyph(paramList.glyph)) then
 		return ""
 	end
-	Ovale.casesACocher[item] = {text = Ovale.L[text] or text, checked = ...}
-	if  paramList[1] and paramList[1]=="checked" then
-		Ovale.casesACocher[item].checked = true
-	end
+	local isChecked = (paramList[1] and paramList[1] == "checked")
+	Ovale.casesACocher[item] = {text = L[text] or text, checked = isChecked}
 	return ""
 end
 
