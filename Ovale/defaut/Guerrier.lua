@@ -1,210 +1,204 @@
 Ovale.defaut["WARRIOR"] =
 [[
-Define(THUNDERCLAP 6343)
-Define(SHOCKWAVE 46968)
-Define(DEMOSHOUT 1160)
-Define(COMMANDSHOUT 469)
-Define(BATTLESHOUT 2048)
-Define(REVENGE 6572)
-Define(SHIELDSLAM 23922)
-Define(DEVASTATE 20243)
-Define(VICTORY 34428)
-Define(EXECUTE 5308)
+# --- Spells & Abilities ---
 Define(BLOODTHIRST 23881)
 Define(WHIRLWIND 1680)
-Define(SLAMBUFF 46916)
-Define(SLAM 1464)
 Define(MORTALSTRIKE 12294)
-Define(SLAMTALENT 2233)
-Define(CLEAVE 845)
-Define(HEROICSTRIKE 78)
-Define(SUNDER 7386)
-Define(CONCUSSIONBLOW 12809)
-Define(REND 772)
+Define(SLAM 47475)
+Define(EXECUTE 47471)
 Define(OVERPOWER 7384)
-Define(SHIELDBLOCK 2565)
-Define(SHIELDWALL 871)
-Define(LASTSTAND 12975)
+Define(REND 47465)
+Define(BLADESTORM 46924)
+Define(VICTORYRUSH 34428)
+Define(HEROICSTRIKE 47450)
+Define(CLEAVE 47440)
+Define(SHIELDSLAM 47488)
+Define(REVENGE 57823)
+Define(DEVASTATE 47498)
+Define(THUNDERCLAP 47502)
+Define(SHOCKWAVE 46968)
+
+# Shouts & Buffs
+Define(BATTLESHOUT 47436)
+Define(COMMANDINGSHOUT 47440)
 Define(DEATHWISH 12292)
 Define(RECKLESSNESS 1719)
-Define(BLADESTORM 46924)
-Define(SUDDENDEATH 52437)
-Define(RETALIATION 20230)
-Define(TASTEFORBLOOD 56636)
+Define(SWEEPINGSTRIKES 12328)
+Define(ENRAGEDREGENERATION 55694)
+Define(BLOODRAGE 2687)
 
-Define(DEMORALIZINGROAR 48560)
-Define(CURSEOFWEAKNESS 50511)
+# Procs & Buff Tracking
+Define(BLOODSURGE 46916)      # Instant Slam proc (Fury)
+Define(TASTEFOREBLOOD 56638)  # Overpower trigger from Rend (Arms)
+Define(SUDDENDEATH 52437)     # Execute trigger in Arms
+Define(SLAMMING 47475)
 
-AddCheckBox(multi L(AOE))
-AddCheckBox(demo SpellName(DEMOSHOUT))
-AddCheckBox(whirlwind SpellName(WHIRLWIND) default)
-AddCheckBox(sunder SpellName(SUNDER) default)
-AddListItem(shout none L(None))
-AddListItem(shout battle SpellName(BATTLESHOUT))
-AddListItem(shout command SpellName(COMMANDSHOUT))
+# Talents
+Define(TALENTBLOODTHIRST 1640)
+Define(TALENTMORTALSTRIKE 1560)
+Define(TALENTSHOCKWAVE 1668)
+Define(TALENTBLADESTORM 1860)
 
-SpellAddTargetDebuff(THUNDERCLAP THUNDERCLAP=30)
-SpellAddTargetDebuff(DEMOSHOUT DEMOSHOUT=45)
-SpellAddTargetDebuff(REND REND=15)
-SpellAddTargetDebuff(DEVASTATE SUNDER=30)
-SpellAddTargetDebuff(SUNDER SUNDER=30)
-SpellAddBuff(BATTLESHOUT BATTLESHOUT=120)
-SpellAddBuff(COMMANDSHOUT COMMANDSHOUT=120)
-SpellAddBuff(SLAM SLAMBUFF=-1)
-SpellInfo(WHIRLWIND cd=8)
+# Spell details for Ovale simulator
 SpellInfo(BLOODTHIRST cd=4)
-SpellInfo(DEATHWISH cd=180)
-SpellInfo(HEROICSTRIKE toggle=1)
-SpellInfo(CLEAVE toggle=1)
-ScoreSpells(WHIRLWIND BLOODTHIRST SLAM REND MORTALSTRIKE EXECUTE SHIELDSLAM REVENGE)
+SpellInfo(WHIRLWIND cd=8)
+SpellInfo(MORTALSTRIKE cd=4)
+SpellInfo(BLADESTORM cd=90)
+SpellInfo(SLAM cd=0)
+SpellInfo(OVERPOWER cd=5)
+SpellInfo(SHIELDSLAM cd=6)
+SpellInfo(REVENGE cd=5)
+SpellInfo(SHOCKWAVE cd=20)
+SpellInfo(REND duration=15)
+SpellInfo(BATTLESHOUT duration=120)
+SpellInfo(COMMANDINGSHOUT duration=120)
 
+SpellAddTargetDebuff(REND REND=15)
+
+# --- UI Controls ---
+AddListItem(mode raid "Raid / Dungeon" default)
+AddListItem(mode level "Leveling / Solo")
+
+AddListItem(shout battle "Battle Shout" default)
+AddListItem(shout command "Commanding Shout")
+
+AddListItem(cleave single "Single Target (Heroic Strike)" default)
+AddListItem(cleave aoe "AOE / Cleave (Cleave)")
+
+AddCheckBox(burst "Auto Death Wish / Cooldowns" checked)
+AddCheckBox(bladestorm "Auto Bladestorm" checked)
+AddCheckBox(vrush "Victory Rush on Kill" checked)
+
+# --- Icons Layout ---
+
+# 1. Main Rotation Icon (GCD Abilities)
 AddIcon help=main
 {
-     if List(shout command) and
-       BuffExpires(COMMANDSHOUT 3)
-          Spell(COMMANDSHOUT nored=1)
-        
-     if List(shout battle) and BuffExpires(BATTLESHOUT 3)
-          Spell(BATTLESHOUT nored=1)
-      
-     if TargetClassification(worldboss) 
-            and CheckBoxOn(demo)
-            and TargetDebuffExpires(DEMOSHOUT 2)
-            and TargetDebuffExpires(DEMORALIZINGROAR 0)
-            and TargetDebuffExpires(CURSEOFWEAKNESS 0)
-          Spell(DEMOSHOUT nored=1)
-         
-	if CheckBoxOn(sunder) and TargetDebuffExpires(SUNDER 2 stacks=5) and TargetDebuffPresent(SUNDER stacks=4)
+	# Проверка поддержания крика (силы атаки или ХП)
+	if List(shout battle) and BuffExpires(BATTLESHOUT 3) Spell(BATTLESHOUT)
+	if List(shout command) and BuffExpires(COMMANDINGSHOUT 3) Spell(COMMANDINGSHOUT)
+
+	# =========================================================
+	# 1. LEVELING / SOLO (Квесты, гринд, прокачка 1-80)
+	# =========================================================
+	if List(mode level)
 	{
-		Spell(DEVASTATE nored=1)
-		Spell(SUNDER nored=1)
-	}
-	
-     if Stance(2) #Defense
-     {
-        if TargetClassification(worldboss)
-        {
-            if TargetDebuffExpires(THUNDERCLAP 2)
-				Spell(THUNDERCLAP nored=1)
-			Spell(CONCUSSIONBLOW)
-			Spell(SHOCKWAVE)
+		# Бесплатный Победный раж после каждого убийства
+		if CheckBoxOn(vrush) and Spell(VICTORYRUSH) Spell(VICTORYRUSH)
+
+		# Добивание Казнью на <20%
+		if TargetLifePercent(less 20) and Mana(more 15) Spell(EXECUTE)
+
+		# Превосходство по проку Вкуса крови или уклонению цели
+		if Spell(OVERPOWER) Spell(OVERPOWER)
+
+		# Рваная рана для запуска тиков Вкуса крови
+		if TargetDeadIn(more 6) and TargetDebuffExpires(REND 2 mine=1) and Mana(more 10)
+		{
+			Spell(REND)
 		}
-        
-        if CheckBoxOn(multi)
-        {
-               Spell(THUNDERCLAP)
-               Spell(SHOCKWAVE)
-        }
-        
-        Spell(REVENGE usable=1)
-        Spell(SHIELDSLAM)
-        Spell(BLOODTHIRST)
-		Spell(MORTALSTRIKE)
-        
-        if Mana(more 10) Spell(DEVASTATE)
-     }
 
-     if Stance(3) #berserker
-     {
-        if HasShield() Spell(SHIELDSLAM)
-        Spell(SHOCKWAVE)
-        Spell(CONCUSSIONBLOW)
-    
-        if CheckBoxOn(whirlwind) Spell(WHIRLWIND)
-        Spell(BLOODTHIRST)
-        if TargetLifePercent(less 20) Spell(EXECUTE)
-        Spell(VICTORY usable=1)
-        if BuffPresent(SLAMBUFF)
-        {
-			if BuffExpires(SLAMBUFF 2.5)
-      			Spell(SLAM nored=1)
-			if BuffDuration(SLAMBUFF more 6) and 1s before Spell(BLOODTHIRST) and { 1s before Spell(WHIRLWIND) or CheckBoxOff(whirlwind) }
-				Spell(SLAM nored=1)
-      		Spell(SLAM priority=2 nored=1)
-      	}
-	 
-        Spell(MORTALSTRIKE)
-   
-        if TalentPoints(SLAMTALENT more 1)
-		    Spell(SLAM priority=2)
+		# Удар по специализации
+		if TalentPoints(TALENTBLOODTHIRST more 0) and Spell(BLOODTHIRST) and Mana(more 20) Spell(BLOODTHIRST)
+		if TalentPoints(TALENTMORTALSTRIKE more 0) and Spell(MORTALSTRIKE) and Mana(more 30) Spell(MORTALSTRIKE)
 
-        Spell(DEVASTATE)
-    }
+		# Прок мгновенного Мощного удара
+		if BuffPresent(BLOODSURGE) Spell(SLAM)
 
-     if Stance(1) #combat
-     {
-		#Suggestions by wikiupd
-		if BuffExpires(TASTEFORBLOOD 1.5) and TargetDebuffExpires(REND 0 mine=1) Spell(OVERPOWER usable=1)
-		if TargetDebuffExpires(REND 0 mine=1) and TargetDeadIn(more 8) Spell(REND)
-		unless BuffPresent(TASTEFORBLOOD) Spell(OVERPOWER usable=1) # Dodge OP
-		if BuffExpires(TASTEFORBLOOD 4.5) Spell(OVERPOWER usable=1) # OP w/ less than 4.5 sec 
-        if TargetLifePercent(more 20) Spell(MORTALSTRIKE)
-        if BuffPresent(SUDDENDEATH) or TargetLifePercent(less 20) Spell(EXECUTE)
-        Spell(OVERPOWER usable=1)
-        Spell(VICTORY usable=1)
-     
-         if TalentPoints(SLAMTALENT more 1)
-		    Spell(SLAM priority=2)
- 
-		#Some other specs stuff, just in case
-		Spell(BLOODTHIRST)
-        if HasShield() Spell(SHIELDSLAM)
-        Spell(SHOCKWAVE)
-        Spell(CONCUSSIONBLOW)
-        Spell(DEVASTATE)
-     }
+		# Базовое сбрасывание ярости
+		if Mana(more 45) and Spell(WHIRLWIND) Spell(WHIRLWIND)
+	}
 
-	if CheckBoxOn(sunder) and TargetDebuffExpires(SUNDER 10 stacks=5)
+	# =========================================================
+	# 2. RAID / DUNGEON
+	# =========================================================
+	if List(mode raid)
 	{
-	    Spell(DEVASTATE priority=2 nored=1)
-		Spell(SUNDER priority=2 nored=1)
-    }
+		# -----------------------------------------------------
+		# ARMS SPEC
+		# -----------------------------------------------------
+		if TalentPoints(TALENTMORTALSTRIKE more 0)
+		{
+			# Поддержание Рваной раны (Rend) - фундамент Arms ветки
+			if TargetDebuffExpires(REND 2.0 mine=1) and Mana(more 10) Spell(REND)
+
+			# Казнь под прок Внезапной смерти (Sudden Death)
+			if BuffPresent(SUDDENDEATH) and Mana(more 15) Spell(EXECUTE)
+
+			# Вихрь клинков (Bladestorm) по КД
+			if CheckBoxOn(bladestorm) and Spell(BLADESTORM) and Mana(more 25) Spell(BLADESTORM)
+
+			# Превосходство под прок Taste for Blood
+			if (BuffPresent(TASTEFOREBLOOD) or Spell(OVERPOWER)) and Mana(more 5) Spell(OVERPOWER)
+
+			# Смертельный удар (Mortal Strike)
+			if Spell(MORTALSTRIKE) and Mana(more 30) Spell(MORTALSTRIKE)
+
+			# Добивание на фазе <20% HP
+			if TargetLifePercent(less 20) and Mana(more 30) Spell(EXECUTE)
+
+			# Мощный удар под прок Slamming / Bloodsurge
+			if BuffPresent(BLOODSURGE) Spell(SLAM)
+
+			# Слив избыточной ярости при простоях
+			if Mana(more 40) and Spell(THUNDERCLAP) Spell(THUNDERCLAP)
+		}
+
+		# -----------------------------------------------------
+		# FURY SPEC
+		# -----------------------------------------------------
+		if TalentPoints(TALENTBLOODTHIRST more 0)
+		{
+			# Бурст: Жажда смерти
+			if CheckBoxOn(burst) and Spell(DEATHWISH) Spell(DEATHWISH)
+
+			# ПРИОРИТЕТ 1: Кровожадность (Bloodthirst) - основной генератор
+			if Spell(BLOODTHIRST) and Mana(more 20) Spell(BLOODTHIRST)
+
+			# ПРИОРИТЕТ 2: Вихрь (Whirlwind)
+			if Spell(WHIRLWIND) and Mana(more 25) Spell(WHIRLWIND)
+
+			# ПРИОРИТЕТ 3: Мгновенный Мощный удар под прок Прилива крови
+			if BuffPresent(BLOODSURGE) and Mana(more 15) Spell(SLAM)
+
+			# ПРИОРИТЕТ 4: Казнь (Execute) строго при простое кулдаунов и проке
+			if TargetLifePercent(less 20) and Mana(more 30) and TargetDebuffExpires(BLOODTHIRST 1) and TargetDebuffExpires(WHIRLWIND 1)
+			{
+				Spell(EXECUTE)
+			}
+		}
+
+		# -----------------------------------------------------
+		# PROTECTION SPEC
+		# -----------------------------------------------------
+		if TalentPoints(TALENTSHOCKWAVE more 0)
+		{
+			if Spell(SHIELDSLAM) and Mana(more 20) Spell(SHIELDSLAM)
+			if Spell(REVENGE) and Mana(more 5) Spell(REVENGE)
+			if Spell(SHOCKWAVE) and Mana(more 15) Spell(SHOCKWAVE)
+			if TargetDebuffExpires(THUNDERCLAP 3) and Spell(THUNDERCLAP) and Mana(more 20) Spell(THUNDERCLAP)
+			if Spell(DEVASTATE) and Mana(more 15) Spell(DEVASTATE)
+		}
+	}
 }
 
-AddIcon help=offgcd
+# 2. Off-GCD / Next-Melee Action (Heroic Strike / Cleave)
+AddIcon size=small help=offgcd
 {
-	if CheckBoxOff(multi)
+	# Очередь Удар героя / Рассекающий удар (строго при избытке ярости)
+	if List(cleave single) and Mana(more 45)
 	{
-		if Stance(2)
-		{
-			if Mana(more 66) 
-				Spell(HEROICSTRIKE)
-		}
-		if Stance(3)
-		{
-			if Mana(more 66)
-				Spell(HEROICSTRIKE)
-		}
-		if Stance(1)
-		{
-			if Mana(more 94)
-				Spell(HEROICSTRIKE)
-		}
+		Spell(HEROICSTRIKE)
 	}
-    if Mana(more 50) and CheckBoxOn(multi)
+	if List(cleave aoe) and Mana(more 45)
+	{
 		Spell(CLEAVE)
- }
+	}
 
-AddIcon help=cd
-{
-    if Stance(2) #Defense
-    {
-        Spell(SHIELDBLOCK)
-		Spell(LASTSTAND)
-		Spell(SHIELDWALL)
-    }
-    if Stance(3) #berserker
-    {
-		Spell(DEATHWISH)
-		Spell(RECKLESSNESS)
-    }
-    if Stance(1) #combat
-    {
-		Spell(BLADESTORM)
-		Spell(RETALIATION)
-    }
-    Item(Trinket0Slot usable=1)
-	Item(Trinket1Slot usable=1)
+	# Кровавая ярость при просадке ярости в бою
+	if InCombat(yes) and Mana(less 20) and Spell(BLOODRAGE)
+	{
+		Spell(BLOODRAGE)
+	}
 }
-
 ]]
