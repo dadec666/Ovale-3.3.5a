@@ -1,175 +1,226 @@
 Ovale.defaut["DRUID"] =
 [[
-Define(FAERIEFIRE 770)
-Define(FAERIEFERAL 16857)
-Define(MANGLEBEAR 33878)
-Define(DEMOROAR 99)
-Define(SWIPE 779)
-Define(LACERATE 33745)
-Define(MAUL 6807)
-Define(RIP 1079)
-Define(MANGLECAT 33876)
-Define(SHRED 5221)
-Define(INSECTSWARM 27013)
-Define(MOONFIRE 8921)
-Define(STARFIRE 2912)
-Define(WRATH 5176)
-Define(ECLIPSESTARFIRE 48518) #Critical strike chance of Starfire increased, fired by Wrath
-Define(ECLIPSEWRATH 48517) #Damage done by Wrath increased, fired by Starfire
-Define(TIGERSFURY 5217)
-Define(FORCEOFNATURE 33831)
-Define(RAKE 59886)
+# --- Spells & Abilities Definitions ---
+# Feral (Cat)
+Define(MANGLECAT 48566)
+Define(SHRED 48572)
+Define(RAKE 48574)
+Define(RIP 49800)
 Define(SAVAGEROAR 52610)
-Define(FEROCIOUSBITE 22568)
+Define(FEROCIOUSBITE 48577)
+Define(TIGERSFURY 50213)
 Define(BERSERK 50334)
-Define(CLEARCASTING 16870)
-Define(CLAW 16827)
-Define(STARFALL 48505)
-Define(TRAUMA 46856)
-Define(GLYPHOFSHRED 54815)
-Define(GLYPHOFRIP 54818)
+Define(FAERIEFIREFAT 16857)
 
-AddCheckBox(multi L(AOE))
-AddCheckBox(mangle SpellName(MANGLECAT) default)
-AddCheckBox(demo SpellName(DEMOROAR) default)
-AddCheckBox(lucioles SpellName(FAERIEFIRE) default)
-AddCheckBox(wrath SpellName(WRATH))
-AddCheckBox(shred SpellName(SHRED) default)
+# Balance (Owl)
+Define(STARFIRE 48465)
+Define(WRATH 48461)
+Define(MOONFIRE 48463)
+Define(INSECTSWARM 48468)
+Define(STARFALL 53201)
+Define(FORCEOFNATURE 33831)
+Define(FAERIEFIRE 770)
 
-ScoreSpells(FAERIEFERAL DEMOROAR MANGLEBEAR LACERATE SAVAGEROAR RIP 
-		TIGERSFURY MANGLECAT RAKE SHRED FEROCIOUSBITE INSECTSWARM MOONFIRE
-		WRATH STARFIRE)
-		
-SpellInfo(MAUL toggle=1)
-SpellAddTargetDebuff(FAERIEFERAL FAERIEFERAL=300)
-SpellAddTargetDebuff(FAERIEFIRE FAERIEFIRE=300)
-SpellAddTargetDebuff(DEMOROAR DEMOROAR=30)
-SpellAddBuff(SAVAGEROAR SAVAGEROAR=14)
-SpellAddTargetDebuff(RIP RIP=12)
-SpellAddTargetDebuff(MANGLECAT MANGLECAT=12)
-SpellAddTargetDebuff(RAKE RAKE=9)
-SpellAddTargetDebuff(INSECTSWARM INSECTSWARM=12)
-SpellAddTargetDebuff(MOONFIRE MOONFIRE=12)
+# Forms
+Define(CATFORM 768)
+Define(MOONKINFORM 24858)
+Define(BEARFORM 9634)
+
+# Buffs, Debuffs & Procs
+Define(CLEARCASTING 16870)     # Omen of Clarity proc
+Define(LUNARECLIPSE 48518)     # +40% Starfire crit
+Define(SOLARECLIPSE 48517)     # +40% Wrath damage
+Define(MANGLEDEBUFF 33876)     # Trauma / Mangle +30% bleed damage
+
+# Talents
+Define(TALENTFORCEOFNATURE 1819)
+Define(TALENTBERSERK 2244)
+Define(TALENTSTARFALL 1821)
+
+# Spell details for Ovale simulator
+SpellInfo(RIP duration=12)
+SpellInfo(RAKE duration=9)
+SpellInfo(SAVAGEROAR duration=14)
+SpellInfo(MOONFIRE duration=12)
+SpellInfo(INSECTSWARM duration=12)
+SpellInfo(STARFALL cd=90)
+SpellInfo(FORCEOFNATURE cd=180)
 SpellInfo(TIGERSFURY cd=30)
 SpellInfo(BERSERK cd=180)
-SpellInfo(FORCEOFNATURE cd=180)
-SpellInfo(MANGLECAT combo=1)
-SpellInfo(RAKE combo=1)
-SpellInfo(SHRED combo=1)
-SpellInfo(SAVAGEROAR combo=-5)
-SpellInfo(RIP combo=-5 duration=12)
-SpellInfo(FEROCIOUSBITE combo=-5)
-SpellInfo(RIP glyph=GLYPHOFSHRED addduration=6)
-SpellInfo(RIP glyph=GLYPHOFRIP addduration=4)
-SpellInfo(CLAW combo=1)
+SpellInfo(FAERIEFIREFAT cd=6)
+SpellInfo(FAERIEFIRE cd=6)
 
+SpellAddTargetDebuff(RIP RIP=12)
+SpellAddTargetDebuff(RAKE RAKE=9)
+SpellAddTargetDebuff(MOONFIRE MOONFIRE=12)
+SpellAddTargetDebuff(INSECTSWARM INSECTSWARM=12)
+
+# --- UI Controls ---
+AddListItem(mode raid "Raid / Dungeon" default)
+AddListItem(mode level "Leveling / Solo")
+
+AddCheckBox(faerie "Maintain Faerie Fire" checked)
+AddCheckBox(burst "Auto Berserk / Starfall" checked)
+AddCheckBox(treants "Auto Force of Nature" checked)
+
+# --- Icons Layout ---
+
+# 1. Main Action Icon
 AddIcon help=main
 {
-	if Stance(1) # bear
+	# =========================================================
+	# 1. FERAL CAT ROTATION (Форма кошки)
+	# =========================================================
+	if Stance(3) # Cat Form
 	{
-		unless TargetDebuffExpires(LACERATE 4) and TargetDebuffPresent(LACERATE)
-			Spell(MANGLEBEAR)
-		
-		if Mana(more 10) and TargetDebuffExpires(LACERATE 4 stacks=5)
-			Spell(LACERATE)
-
-		if CheckBoxOn(lucioles) and TargetDebuffExpires(FAERIEFERAL 2)
-			Spell(FAERIEFERAL)
-
-		if CheckBoxOn(demo) and TargetDebuffExpires(DEMOROAR 2)
-			Spell(DEMOROAR)
-
-		if CheckBoxOn(multi)
-			Spell(SWIPE)    
-	}
-
-	if Stance(3) # cat
-	{
-		if ComboPoints(more 0) and BuffExpires(SAVAGEROAR 2) Spell(SAVAGEROAR priority=4)
-	
-		if CheckBoxOn(lucioles) and	TargetDebuffExpires(FAERIEFERAL 2) and TargetDeadIn(more 15)
-			Spell(FAERIEFERAL)
-
-		#De-synchronize Roar and Rip
-		if ComboPoints(more 2) and BuffExpires(SAVAGEROAR 6) and less than 6s between BuffExpires(ROAR) and TargetDebuffExpires(RIP mine=1 forceduration=22) 
+		# Бафф Волшебного огня (броня цели и бесплатный триггер Omen of Clarity)
+		if CheckBoxOn(faerie) and TargetDebuffExpires(FAERIEFIREFAT 2) and TargetDebuffExpires(FAERIEFIRE 2)
 		{
-			unless TargetDebuffExpires(RIP 6 mine=1) Spell(SAVAGEROAR priority=4)
+			Spell(FAERIEFIREFAT)
 		}
 
-		#Extends Rip with shred if glyph
-		if Glyph(GLYPHOFRIP) and TargetDebuffPresent(RIP mine=1) and TargetDebuffExpires(RIP 4 mine=1) and Counter(ripshreds less 3) Spell(SHRED)
-
-		if ComboPoints(more 4)
+		# -----------------------------------------------------
+		# LEVELING / SOLO (Квесты, быстрые мобы)
+		# -----------------------------------------------------
+		if List(mode level)
 		{
-			if TargetDeadIn(less 7) Spell(FEROCIOUSBITE priority=4)
-			if TargetDebuffExpires(RIP 0 mine=1) Spell(RIP priority=4)
-			if TargetDebuffPresent(RIP 10 mine=1) and BuffPresent(SAVAGEROAR 6)
+			# Поддержание Дикого рева хотя бы на 1 комбо-поинте
+			if BuffExpires(SAVAGEROAR 2) and ComboPoints(more 0)
 			{
-				if BuffExpires(BERSERK 0) or {BuffPresent(BERSERK) and Mana(less 20)}
-					Spell(FEROCIOUSBITE)
+				Spell(SAVAGEROAR)
+			}
+
+			# Быстрый Укус на 4-5 комбо-поинтах
+			if ComboPoints(more 3) and Mana(more 35)
+			{
+				Spell(FEROCIOUSBITE)
+			}
+
+			# Глубокая рана на мобов жирнее 6 сек
+			if TargetDeadIn(more 6) and TargetDebuffExpires(RAKE 2 mine=1) and Mana(more 35)
+			{
+				Spell(RAKE)
+			}
+
+			# Бесплатный Shred под клиркаст
+			if BuffPresent(CLEARCASTING) Spell(SHRED)
+
+			# Филлер: Увечье (если цель лицом) или Полоснуть
+			if Mana(more 40)
+			{
+				Spell(MANGLECAT)
 			}
 		}
-		
-		if TargetDebuffExpires(MANGLECAT 0) and TargetDebuffExpires(MANGLEBEAR 0) and TargetDebuffExpires(TRAUMA 0) and CheckBoxOn(mangle)
-			Spell(MANGLECAT)
-		if TargetDebuffExpires(RAKE 0 mine=1) and TargetDeadIn(more 10)
-			Spell(RAKE)
-	
-		if CheckBoxOn(shred)
+
+		# -----------------------------------------------------
+		# RAID / DUNGEON (Эндгейм ротация кота)
+		# -----------------------------------------------------
+		if List(mode raid)
 		{
-			if Mana(more 69) Spell(SHRED priority=2)
-			if BuffPresent(CLEARCASTING) or TargetDeadIn(less 10) or BuffPresent(BERSERK) 
-					Spell(SHRED)
-			if ComboPoints(less 5) and TargetDebuffExpires(RIP 3 mine=1) Spell(SHRED)
-			if ComboPoints(less 1) and BuffExpires(SAVAGEROAR 2) Spell(SHRED)
+			# ПРИОРИТЕТ 1: Дикий рёв (Savage Roar) - основа всего урона (+30%)
+			if BuffExpires(SAVAGEROAR 1.5) and ComboPoints(more 0)
+			{
+				Spell(SAVAGEROAR)
+			}
+
+			# ПРИОРИТЕТ 2: Поддержание Разорвать (Rip) на 5 комбо-поинтах
+			if ComboPoints(more 4) and TargetDebuffExpires(RIP 2.0 mine=1) and TargetDeadIn(more 10)
+			{
+				Spell(RIP)
+			}
+
+			# ПРИОРИТЕТ 3: Свирепый укус (Bite) строго в безопасные окна (когда Rip и Roar висят долго)
+			if ComboPoints(more 4) and TargetDebuffExpires(RIP 8 mine=1) and BuffExpires(SAVAGEROAR 8) and Mana(more 35)
+			{
+				Spell(FEROCIOUSBITE)
+			}
+
+			# ПРИОРИТЕТ 4: Поддержание дебаффа Увечья / Травмы (+30% к блидам)
+			if TargetDebuffExpires(MANGLEDEBUFF 0) and Spell(MANGLECAT) and Mana(more 35)
+			{
+				Spell(MANGLECAT)
+			}
+
+			# ПРИОРИТЕТ 5: Поддержание Глубокой раны (Rake)
+			if TargetDebuffExpires(RAKE 1.5 mine=1) and Mana(more 35)
+			{
+				Spell(RAKE)
+			}
+
+			# ПРИОРИТЕТ 6: Бесплатный Полоснуть (Shred) под прок Omen of Clarity
+			if BuffPresent(CLEARCASTING) Spell(SHRED)
+
+			# ПРИОРИТЕТ 7: Филлер для набора комбо-поинтов - Полоснуть (Shred)
+			if Mana(more 42)
+			{
+				Spell(SHRED)
+			}
 		}
-		if CheckBoxOff(shred) Spell(CLAW)
 	}
 
-	unless Stance(1) or Stance(3)
+	# =========================================================
+	# 2. BALANCE ROTATION (Форма лунного совуха)
+	# =========================================================
+	if Stance(5) or TalentPoints(TALENTSTARFALL more 0) # Moonkin Form / Balance Spec
 	{
-		if CheckBoxOn(lucioles) and TargetDebuffExpires(FAERIEFIRE 2) and TargetDeadIn(more 15)
-			Spell(FAERIEFIRE)
+		# Звездопад по КД
+		if CheckBoxOn(burst) and Spell(STARFALL) Spell(STARFALL)
 
-		if TargetDebuffExpires(INSECTSWARM 0 mine=1) and TargetDeadIn(more 6)
-			Spell(INSECTSWARM)  
-		if TargetDebuffExpires(MOONFIRE 0 mine=1) and TargetDeadIn(more 6)
+		# Волшебный огонь на боссе (+3% меткости рейду)
+		if CheckBoxOn(faerie) and TargetDebuffExpires(FAERIEFIRE 2) Spell(FAERIEFIRE)
+
+		# -----------------------------------------------------
+		# ФАЗА ЛУННОГО ЗАТМЕНИЯ (+40% крита Звездного огня)
+		# -----------------------------------------------------
+		if BuffPresent(LUNARECLIPSE)
+		{
+			Spell(STARFIRE)
+		}
+
+		# -----------------------------------------------------
+		# ФАЗА СОЛНЕЧНОГО ЗАТМЕНИЯ (+40% урона Гнева)
+		# -----------------------------------------------------
+		if BuffPresent(SOLARECLIPSE)
+		{
+			Spell(WRATH)
+		}
+
+		# -----------------------------------------------------
+		# ВНЕ ЗАТМЕНИЯ (Поддержание DoT и триггер проков)
+		# -----------------------------------------------------
+		if TargetDebuffExpires(INSECTSWARM 1.5 mine=1) and TargetDeadIn(more 8)
+		{
+			Spell(INSECTSWARM)
+		}
+
+		if TargetDebuffExpires(MOONFIRE 1.5 mine=1) and TargetDeadIn(more 8)
+		{
 			Spell(MOONFIRE)
-
-		if BuffPresent(ECLIPSEWRATH)
-			Spell(WRATH)
-		if BuffPresent(ECLIPSESTARFIRE)
-			Spell(STARFIRE)
-
-		if CheckBoxOff(wrath)
-		{
-			if BuffGain(ECLIPSEWRATH 29) Spell(STARFIRE)
-			Spell(WRATH)
 		}
-		if CheckBoxOn(wrath)
-		{
-			if BuffGain(ECLIPSESTARFIRE 29) Spell(WRATH)
-			Spell(STARFIRE)
-		}
+
+		# Если спало Лунное затмение — спамим Звездный огонь для вызова Солнечного
+		# Если спало Солнечное затмение — спамим Гнев для вызова Лунного
+		Spell(WRATH)
 	}
 }
 
-AddIcon help=offgcd
+# 2. Off-GCD / Cooldowns Icon
+AddIcon size=small help=cd
 {
-  if Stance(1)
-  {  
-       Spell(MAUL)
-  }
-}
+	# Бурсты кота (Тигриное неистовство и Берсерк)
+	if Stance(3)
+	{
+		# Тигриное неистовство жмем строго при малом запасе энергии (<35), чтобы не терять реген
+		if Mana(less 35) and Spell(TIGERSFURY) Spell(TIGERSFURY)
 
-AddIcon help=cd
-{
-	unless Stance(1) or Stance(3) Spell(STARFALL)
-	Spell(FORCEOFNATURE)
-	Spell(BERSERK)
-	unless BuffPresent(BERSERK) if Mana(less 40) Spell(TIGERSFURY)
-	Item(Trinket0Slot usable=1)
-	Item(Trinket1Slot usable=1)
-}
+		# Берсерк под полный столб энергии
+		if CheckBoxOn(burst) and Mana(more 80) and BuffExpires(TIGERSFURY 0) and Spell(BERSERK)
+		{
+			Spell(BERSERK)
+		}
+	}
 
+	# Бурсты совы: Деревья (Force of Nature)
+	if CheckBoxOn(treants) and Spell(FORCEOFNATURE) Spell(FORCEOFNATURE)
+}
 ]]
