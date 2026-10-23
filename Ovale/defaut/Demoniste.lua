@@ -23,10 +23,10 @@ Define(SHADOWFLAME 61290)
 Define(DEMONICEMPOWERMENT 47193)
 
 # Buffs & Procs
-Define(MOLTENCORE 71165)       # Molten Core (3 charges)
-Define(DECIMATION 63167)       # Decimation (<35% execute)
-Define(GLYPHOFLIFETAP 63321)   # Glyph of Life Tap buff
-Define(SHADOWTRANCE 17941)     # Nightfall / Shadow Trance instant Shadow Bolt
+Define(MOLTENCORE 71165)       # Molten Core
+Define(DECIMATION 63167)       # Decimation (<35%)
+Define(GLYPHOFLIFETAP 63321)   # Glyph of Life Tap
+Define(SHADOWTRANCE 17941)     # Nightfall / Shadow Trance
 
 # Talents
 Define(TALENTDEMONICEMPOWERMENT 1880)
@@ -56,91 +56,49 @@ SpellAddTargetDebuff(CURSEOFAGONY CURSEOFAGONY=24)
 SpellAddTargetDebuff(HAUNT HAUNT=12)
 SpellAddTargetDebuff(UNSTABLEAFFLICTION UNSTABLEAFFLICTION=15)
 
-# --- UI Controls ---
-AddListItem(mode raid "Raid / Dungeon" default)
-AddListItem(mode level "Leveling / Solo")
+# --- UI Controls (Локализуемые ключи L[...]) ---
+AddListItem(mode level L["Leveling / Solo"] default)
+AddListItem(mode raid L["Raid / Dungeon"])
 
-AddListItem(curse doom "Curse of Doom" default)
-AddListItem(curse agony "Curse of Agony")
-AddListItem(curse elements "Curse of the Elements")
+AddListItem(curse agony L["Curse of Agony"] default)
+AddListItem(curse doom L["Curse of Doom"])
+AddListItem(curse elements L["Curse of the Elements"])
 
-AddListItem(position ranged "Ranged Position" default)
-AddListItem(position melee "Melee / Close Range")
+AddListItem(position ranged L["Ranged Position"] default)
+AddListItem(position melee L["Melee / Close Range"])
 
-AddCheckBox(meta "Auto Metamorphosis" checked)
-AddCheckBox(petemp "Demonic Empowerment" checked)
-AddCheckBox(lifetap "Maintain Life Tap Buff" checked)
-AddCheckBox(drain "Execute Drain Soul" checked)
+AddCheckBox(drain L["Execute Drain Soul"] checked)
+AddCheckBox(lifetap L["Maintain Life Tap Buff"] checked)
+AddCheckBox(meta L["Auto Metamorphosis"] checked)
+AddCheckBox(petemp L["Demonic Empowerment"] checked)
 
 # --- Icons Layout ---
 
-# 1. Main Rotation (Соло-цель)
+# 1. Основное действие (Основная рамка + полупрозрачная очередь следующего спелла)
 AddIcon help=main
 {
-	# =========================================================
-	# ВЕТКА: LEVELLING / SOLO (Прокачка, квесты, фарм)
-	# =========================================================
+	# ВЕТКА ПРОКАЧКИ
 	if List(mode level)
 	{
-		# Добивание моба Похищением души ради осколков и маны от таланта Improved Drain Soul
-		if CheckBoxOn(drain) and TargetLifePercent(less 25)
-		{
-			Spell(DRAINSOUL)
-		}
+		if CheckBoxOn(drain) and TargetLifePercent(less 25) Spell(DRAINSOUL)
+		if TargetLifePercent(less 20) and Spell(SHADOWBURN) Spell(SHADOWBURN)
+		if BuffPresent(DECIMATION) Spell(SOULFIRE)
+		if BuffPresent(SHADOWTRANCE) Spell(SHADOWBOLT)
+		if BuffPresent(MOLTENCORE) Spell(INCINERATE)
 
-		# Быстрое добивание Ожогом Тьмы, если способность изучена
-		if TargetLifePercent(less 20) and Spell(SHADOWBURN)
-		{
-			Spell(SHADOWBURN)
-		}
+		if TargetDebuffExpires(CORRUPTION 2 mine=1) Spell(CORRUPTION)
+		if List(curse agony) and TargetDebuffExpires(CURSEOFAGONY 2 mine=1) Spell(CURSEOFAGONY)
+		if TargetDebuffExpires(IMMOLATE 2 mine=1) and TargetLifePercent(more 30) Spell(IMMOLATE)
 
-		# Безопасный жизнеотвод вне критического здоровья
-		if ManaPercent(less 40) and LifePercent(more 50)
-		{
-			Spell(LIFETAP)
-		}
-
-		# Экзекут Ожогом души под прок Истребления
-		if BuffPresent(DECIMATION)
-		{
-			Spell(SOULFIRE)
-		}
-
-		# Мгновенная Стрела Тьмы по проку Сумерек (Nightfall)
-		if BuffPresent(SHADOWTRANCE)
-		{
-			Spell(SHADOWBOLT)
-		}
-
-		# Слив прока Огненных недр в Испепеление
-		if BuffPresent(MOLTENCORE)
-		{
-			Spell(INCINERATE)
-		}
-
-		# Базовые DoT (только если моб живет дольше 6 секунд)
-		if TargetDeadIn(more 6)
-		{
-			if TargetDebuffExpires(CORRUPTION 2 mine=1) Spell(CORRUPTION)
-			if TargetDebuffExpires(CURSEOFAGONY 3 mine=1) Spell(CURSEOFAGONY)
-			if TargetDeadIn(more 10) and TargetDebuffExpires(IMMOLATE 2 mine=1) Spell(IMMOLATE)
-		}
-
-		# Основной филлер при каче
 		Spell(SHADOWBOLT)
 	}
 
-	# =========================================================
-	# ВЕТКА: RAID / DUNGEON (Эндгейм боссы и рейды)
-	# =========================================================
+	# ВЕТКА РЕЙДА
 	if List(mode raid)
 	{
-		# Бафф символа жизнеотвода (СПД)
 		if CheckBoxOn(lifetap) and BuffExpires(GLYPHOFLIFETAP 2) Spell(LIFETAP)
 
-		# ------------------------------
-		# 1. DEMONOLOGY
-		# ------------------------------
+		# Demonology
 		if TalentPoints(TALENTMETAMORPHOSIS more 0)
 		{
 			if CheckBoxOn(meta) and Spell(METAMORPHOSIS) Spell(METAMORPHOSIS)
@@ -156,26 +114,14 @@ AddIcon help=main
 
 			if List(curse elements) and TargetDebuffExpires(CURSEOFELEMENTS 3) Spell(CURSEOFELEMENTS)
 			if List(curse doom) and TargetDebuffExpires(CURSEOFDOOM 0 mine=1) and TargetDeadIn(more 60) Spell(CURSEOFDOOM)
-			if List(curse agony) and TargetDebuffExpires(CURSEOFAGONY 2 mine=1) and TargetDebuffExpires(CURSEOFDOOM 0 mine=1) Spell(CURSEOFAGONY)
-			if List(curse doom) and TargetDebuffExpires(CURSEOFDOOM 0 mine=1) and TargetDeadIn(less 60) and TargetDebuffExpires(CURSEOFAGONY 2 mine=1) Spell(CURSEOFAGONY)
+			if List(curse agony) and TargetDebuffExpires(CURSEOFAGONY 2 mine=1) Spell(CURSEOFAGONY)
 
-			# Фаза казни (<35% HP или активный прок)
-			if BuffPresent(DECIMATION) or TargetLifePercent(less 35)
-			{
-				Spell(SOULFIRE)
-			}
-
-			if BuffPresent(MOLTENCORE)
-			{
-				Spell(INCINERATE)
-			}
-
+			if BuffPresent(DECIMATION) or TargetLifePercent(less 35) Spell(SOULFIRE)
+			if BuffPresent(MOLTENCORE) Spell(INCINERATE)
 			Spell(SHADOWBOLT)
 		}
 
-		# ------------------------------
-		# 2. AFFLICTION
-		# ------------------------------
+		# Affliction
 		if TalentPoints(TALENTHAUNT more 0)
 		{
 			if TargetLifePercent(less 25)
@@ -198,9 +144,7 @@ AddIcon help=main
 			Spell(SHADOWBOLT)
 		}
 
-		# ------------------------------
-		# 3. DESTRUCTION
-		# ------------------------------
+		# Destruction
 		if TalentPoints(TALENTCHAOSBOLT more 0)
 		{
 			if TargetDebuffExpires(IMMOLATE 2.0 mine=1) Spell(IMMOLATE)
@@ -209,24 +153,34 @@ AddIcon help=main
 
 			if List(curse elements) and TargetDebuffExpires(CURSEOFELEMENTS 3) Spell(CURSEOFELEMENTS)
 			if List(curse doom) and TargetDebuffExpires(CURSEOFDOOM 0 mine=1) and TargetDeadIn(more 60) Spell(CURSEOFDOOM)
-			if List(curse agony) and TargetDebuffExpires(CURSEOFAGONY 2 mine=1) and TargetDebuffExpires(CURSEOFDOOM 0 mine=1) Spell(CURSEOFAGONY)
+			if List(curse agony) and TargetDebuffExpires(CURSEOFAGONY 2 mine=1) Spell(CURSEOFAGONY)
 
 			if TargetDebuffExpires(CORRUPTION 2 mine=1) Spell(CORRUPTION)
-
 			Spell(INCINERATE)
 		}
 
-		# Универсальный fallback для рейдов, если спек гибридный без ключевых талантов
+		# Fallback
 		if TargetDebuffExpires(CORRUPTION 2 mine=1) Spell(CORRUPTION)
 		if TargetDebuffExpires(IMMOLATE 2 mine=1) Spell(IMMOLATE)
 		Spell(SHADOWBOLT)
 	}
 }
 
-# 2. Off-GCD / Cooldowns
+# 2. Маленькая иконка 1: Бурст / Бафф пета
 AddIcon size=small help=cd
 {
-	if CheckBoxOn(petemp) and Spell(DEMONICEMPOWERMENT) and PetPresent(yes) Spell(DEMONICEMPOWERMENT)
-	if ManaPercent(less 20) and LifePercent(more 30) Spell(LIFETAP)
+	if CheckBoxOn(petemp) and Spell(DEMONICEMPOWERMENT) and PetPresent(yes)
+	{
+		Spell(DEMONICEMPOWERMENT)
+	}
+}
+
+# 3. Маленькая иконка 2: Мана и жизнеотвод
+AddIcon size=small help=mana
+{
+	if ManaPercent(less 35) and LifePercent(more 45)
+	{
+		Spell(LIFETAP)
+	}
 }
 ]]
