@@ -1,166 +1,269 @@
-Ovale.defaut["DEATHKNIGHT"] = [[
-Define(FROSTPRESENCE 48263)
-Define(RUNESTRIKE 56815)
-Define(BONESHIELD 49222)
-Define(ICEBOUNDFORTITUDE 48792)
-Define(UNBREAKABLEARMOR 51271)
-Define(DEATHANDECAY 43265)
-Define(HOWLINGBLAST 49184)
-Define(OBLITERATE 49020)
-Define(BLOODSTRIKE 45902)
-Define(BLOODBOIL 48721)
-Define(BLOODPLAGUE 59879)
-Define(FROSTFEVER 59921)
-Define(PESTILENCE 50842)a
-Define(ICYTOUCH 45477)
-Define(PLAGUESTRIKE 45462)
+Ovale.defaut["DEATHKNIGHT"] =
+[[
+# --- Spells & Abilities ---
+Define(ICYTOUCH 49909)
+Define(PLAGUESTRIKE 49921)
+Define(OBLITERATE 51425)
+Define(DEATHSTRIKE 49924)
 Define(HEARTSTRIKE 55050)
-Define(DEATHSTRIKE 49998)
-Define(TALENTDEATSTRIKE 2259)
-Define(TALENTFROSTSTRIKE 1975)
-Define(TALENTHEARTSTRIKE 1957)
-Define(TALENTBLOODYSTRIKES 2015)
-Define(SCOURGESTRIKE 55090)
-Define(DEATHCOIL 47541)
-Define(ARMYOFTHEDEAD 42650)
-Define(DANCINGRUNEWEAPON 49028)
-Define(FROSTSTRIKE 49143)
-Define(HYSTERIA 49016)
-Define(SUMMONGARGOYLE 49206)
-Define(GLYPHDISEASE 63334)
-Define(GLYPHHOWLINGBLAST 63335)
-Define(ABOMINATIONMIGHT 53136)
-Define(TALENTABOMINATIONMIGHT 2105)
-Define(RAISEDEAD 46584)
-Define(HORNOFWINTER 57330)
-Define(STRENGTHOFEARTHTOTEM 8075)
-Define(GLYPHOFRAISEDEAD 60200)
+Define(BLOODSTRIKE 49930)
+Define(SCOURGESTRIKE 55271)
+Define(FROSTSTRIKE 55268)
+Define(DEATHCOIL 49895)
+Define(HOWLINGBLAST 51411)
+Define(PESTILENCE 50842)
+Define(BLOODBOIL 49941)
+Define(DEATHANDDECAY 49938)
+Define(HORNOFWINTER 57623)
+Define(EMPOWERWEAPON 47568)
+Define(UNBREAKABLEARMOR 51271)
 Define(BLOODTAP 45529)
-Define(FREEZINGFOG 59052)
-Define(KILLINGMACHINE 51124)
+Define(SUMMONGARGOYLE 49206)
+Define(ARMYOFTHEDEAD 42650)
 
-AddCheckBox(rolldes SpellName(GLYPHDISEASE) default glyph=GLYPHDISEASE)
+# Buffs, Debuffs & Procs
+Define(FROSTFEVER 55095)
+Define(BLOODPLAGUE 55078)
+Define(KILLINGMACHINE 51124)  # 100% crit Frost Strike / Howling Blast
+Define(FREEZINGFOG 59052)     # Rime proc (Free Howling Blast)
+Define(SUDDENDEOM 49530)      # Free Death Coil (Unholy)
 
-SpellInfo(ICYTOUCH frost=-1) #forcecd=DEATHCOIL
-SpellAddTargetDebuff(ICYTOUCH FROSTFEVER=15)
-SpellInfo(PLAGUESTRIKE unholy=-1)
-SpellAddTargetDebuff(PLAGUESTRIKE BLOODPLAGUE=15)
-SpellInfo(DEATHSTRIKE unholy=-1 frost=-1)
-SpellInfo(HEARTSTRIKE blood=-1)
-SpellInfo(HOWLINGBLAST frost=-1 cd=8)
-SpellAddTargetDebuff(HOWLINGBLAST FROSTFEVER=15 glyph=GLYPHHOWLINGBLAST)
-SpellInfo(BLOODSTRIKE blood=-1)
-SpellInfo(SCOURGESTRIKE unholy=-1 frost=-1)
-SpellInfo(OBLITERATE unholy=-1 frost=-1)
-SpellInfo(RUNESTRIKE toggle=1)
-SpellAddBuff(BONESHIELD BONESHIELD=300)
-SpellAddBuff(UNBREAKABLEARMOR UNBREAKABLEARMOR=20)
-SpellAddBuff(ICEBOUNDFORTITUDE ICEBOUNDFORTITUDE=18)
-SpellInfo(HORNOFWINTER cd=20)
-SpellInfo(HYSTERIA cd=300)
+# Talents
+Define(TALENTHEARTSTRIKE 1939)
+Define(TALENTHOWLINGBLAST 1968)
+Define(TALENTSUMMONGARGOYLE 2007)
+
+# Spell details for Ovale simulator
+SpellInfo(ICYTOUCH cd=0)
+SpellInfo(PLAGUESTRIKE cd=0)
+SpellInfo(PESTILENCE cd=0)
+SpellInfo(HOWLINGBLAST cd=8)
+SpellInfo(UNBREAKABLEARMOR cd=60)
+SpellInfo(DEATHANDDECAY cd=30)
 SpellInfo(SUMMONGARGOYLE cd=180)
-SpellInfo(ARMYOFTHEDEAD cd=600)
-ScoreSpells(HOWLINGBLAST HEARTSTRIKE BLOODSTRIKE DEATHSTRIKE SCOURGESTRIKE OBLITERATE HEARTSTRIKE 
-				PESTILENCE ICYTOUCH PLAGUESTRIKE FROSTSTRIKE DEATHCOIL)
+SpellInfo(BLOODTAP cd=60)
+SpellInfo(EMPOWERWEAPON cd=300)
 
+SpellAddTargetDebuff(ICYTOUCH FROSTFEVER=15)
+SpellAddTargetDebuff(PLAGUESTRIKE BLOODPLAGUE=15)
+SpellAddTargetDebuff(PESTILENCE FROSTFEVER=15 BLOODPLAGUE=15)
+
+# --- UI Controls ---
+AddListItem(mode raid "Raid / Dungeon" default)
+AddListItem(mode level "Leveling / Solo")
+
+AddListItem(aoe single "Single Target" default)
+AddListItem(aoe aoe "AOE / Packs")
+
+AddCheckBox(horn "Maintain Horn of Winter" checked)
+AddCheckBox(dnd "Death and Decay" checked)
+AddCheckBox(gargoyle "Summon Gargoyle" checked)
+
+# --- Icons Layout ---
+
+# 1. Main Action Icon
 AddIcon help=main
 {
-	Spell(DANCINGRUNEWEAPON usable=1)
+	# Бафф Зимнего горна (если нет шаманского тотема или бафф спал)
+	if CheckBoxOn(horn) and BuffExpires(HORNOFWINTER 2) Spell(HORNOFWINTER)
 
-	if BuffExpires(HORNOFWINTER 2) and BuffExpires(STRENGTHOFEARTHTOTEM 0) Spell(HORNOFWINTER)
-	
-	if CheckBoxOn(rolldes) and Glyph(GLYPHDISEASE) 
-		and TargetDebuffPresent(FROSTFEVER mine=1) and TargetDebuffPresent(BLOODPLAGUE mine=1) and
-		{TargetDebuffExpires(FROSTFEVER 3 mine=1) or TargetDebuffExpires(BLOODPLAGUE 3 mine=1)}
-			Spell(PESTILENCE)
-	
-	if BuffPresent(KILLINGMACHINE) Spell(FROSTSTRIKE usable=1)
-	
-	if TargetDebuffPresent(FROSTFEVER mine=1) and TargetDebuffPresent(BLOODPLAGUE mine=1)
+	# =========================================================
+	# 1. LEVELING / SOLO (55-80, фарм, квесты)
+	# =========================================================
+	if List(mode level)
 	{
-		if TalentPoints(TALENTBLOODYSTRIKES more 0)
+		# Самоисцеление через Удар смерти при просадке ХП
+		if LifePercent(less 65) and Runes(frost 1) and Runes(unholy 1)
 		{
-			if Runes(blood 1) and {CheckBoxOff(rolldes) or Runes(blood 2)}
-			{	
-				Spell(HEARTSTRIKE)
-				Spell(BLOODSTRIKE)
-			}
-		}
-		if Runes(unholy 1) and Runes(frost 1)
-			Spell(SCOURGESTRIKE)
-			
-		if Runes(unholy 1 nodeath=1) and Runes(frost 1 nodeath=1)
-		{
-			if TalentPoints(TALENTDEATSTRIKE more 0) Spell(DEATHSTRIKE)
-			Spell(OBLITERATE)
 			Spell(DEATHSTRIKE)
 		}
-		if Runes(blood 1) and {CheckBoxOff(rolldes) or Runes(blood 2)}
+
+		# Быстрое наложение болезней
+		if TargetDebuffExpires(FROSTFEVER 2 mine=1) and Runes(frost 1) Spell(ICYTOUCH)
+		if TargetDebuffExpires(BLOODPLAGUE 2 mine=1) and Runes(unholy 1) Spell(PLAGUESTRIKE)
+
+		# Слив рун в базовые мощные удары
+		if Runes(frost 1) and Runes(unholy 1)
 		{
-			Spell(HEARTSTRIKE)
+			if TalentPoints(TALENTHOWLINGBLAST more 0) Spell(OBLITERATE)
+			if TalentPoints(TALENTSUMMONGARGOYLE more 0) Spell(SCOURGESTRIKE)
+			Spell(DEATHSTRIKE)
+		}
+
+		# Слив рун крови
+		if Runes(blood 1)
+		{
+			if TalentPoints(TALENTHEARTSTRIKE more 0) Spell(HEARTSTRIKE)
 			Spell(BLOODSTRIKE)
 		}
+
+		# Слив силы рун (Runic Power)
+		if Mana(more 40)
+		{
+			if TalentPoints(TALENTHOWLINGBLAST more 0) Spell(FROSTSTRIKE)
+			Spell(DEATHCOIL)
+		}
+
+		# Обновление Горна при простое
+		Spell(HORNOFWINTER)
 	}
-	
-	if CheckBoxOn(rolldes) and Glyph(GLYPHDISEASE) and TalentPoints(TALENTABOMINATIONMIGHT more 0) and BuffExpires(ABOMINATIONMIGHT 0)
-		Spell(DEATHSTRIKE)
-		
-	if TargetDebuffExpires(FROSTFEVER 0 mine=1) and Runes(frost 1)
+
+	# =========================================================
+	# 2. RAID / DUNGEON
+	# =========================================================
+	if List(mode raid)
 	{
-		if Glyph(GLYPHHOWLINGBLAST) Spell(HOWLINGBLAST)
-		unless Glyph(GLYPHHOWLINGBLAST) Spell(ICYTOUCH)
+		# -----------------------------------------------------
+		# UNHOLY SPEC
+		# -----------------------------------------------------
+		if TalentPoints(TALENTSUMMONGARGOYLE more 0)
+		{
+			# Первичное наложение болезней
+			if TargetDebuffExpires(FROSTFEVER 0 mine=1) and Runes(frost 1) Spell(ICYTOUCH)
+			if TargetDebuffExpires(BLOODPLAGUE 0 mine=1) and Runes(unholy 1) Spell(PLAGUESTRIKE)
+
+			# Обновление болезней через Мор перед спадением
+			if (TargetDebuffExpires(FROSTFEVER 2.5 mine=1) or TargetDebuffExpires(BLOODPLAGUE 2.5 mine=1)) and Runes(blood 1)
+			{
+				Spell(PESTILENCE)
+			}
+
+			# Призыв горгульи
+			if CheckBoxOn(gargoyle) and Spell(SUMMONGARGOYLE) and Mana(more 60)
+			{
+				Spell(SUMMONGARGOYLE)
+			}
+
+			# Смерть и разложение по КД под босса
+			if CheckBoxOn(dnd) and Runes(unholy 1) and Runes(frost 1) and Runes(blood 1) and Spell(DEATHANDDECAY)
+			{
+				Spell(DEATHANDDECAY)
+			}
+
+			# АОЕ режим
+			if List(aoe aoe)
+			{
+				if Runes(blood 1) Spell(BLOODBOIL)
+			}
+
+			# Удар Плети (Scourge Strike) при наличии Unholy/Frost/Death рун
+			if Runes(unholy 1) and Runes(frost 1)
+			{
+				Spell(SCOURGESTRIKE)
+			}
+
+			# Слив рун крови в Кровавый удар для генерации рун смерти
+			if Runes(blood 1)
+			{
+				Spell(BLOODSTRIKE)
+			}
+
+			# Лик смерти по проку Sudden Doom или кап РП
+			if BuffPresent(SUDDENDEOM) or Mana(more 80)
+			{
+				Spell(DEATHCOIL)
+			}
+
+			# Базовый сброс РП
+			if Mana(more 40) Spell(DEATHCOIL)
+		}
+
+		# -----------------------------------------------------
+		# FROST SPEC
+		# -----------------------------------------------------
+		if TalentPoints(TALENTHOWLINGBLAST more 0)
+		{
+			# Наложение болезней
+			if TargetDebuffExpires(FROSTFEVER 0 mine=1) and Runes(frost 1) Spell(ICYTOUCH)
+			if TargetDebuffExpires(BLOODPLAGUE 0 mine=1) and Runes(unholy 1) Spell(PLAGUESTRIKE)
+
+			# Бесплатный Воющий ветер под прок Инея (Rime)
+			if BuffPresent(FREEZINGFOG)
+			{
+				Spell(HOWLINGBLAST)
+			}
+
+			# Ледяной удар под прок Машины для убийств (100% крит)
+			if BuffPresent(KILLINGMACHINE) and Mana(more 32)
+			{
+				Spell(FROSTSTRIKE)
+			}
+
+			# Уничтожение (Obliterate) - основной урон ветки
+			if Runes(frost 1) and Runes(unholy 1)
+			{
+				Spell(OBLITERATE)
+			}
+
+			# Обновление болезней через Мор или сброс рун крови Кровавым ударом
+			if (TargetDebuffExpires(FROSTFEVER 2 mine=1) or TargetDebuffExpires(BLOODPLAGUE 2 mine=1)) and Runes(blood 1)
+			{
+				Spell(PESTILENCE)
+			}
+
+			if Runes(blood 1)
+			{
+				Spell(BLOODSTRIKE)
+			}
+
+			# Слив силы рун в Ледяной удар
+			if Mana(more 40)
+			{
+				Spell(FROSTSTRIKE)
+			}
+		}
+
+		# -----------------------------------------------------
+		# BLOOD SPEC
+		# -----------------------------------------------------
+		if TalentPoints(TALENTHEARTSTRIKE more 0)
+		{
+			if TargetDebuffExpires(FROSTFEVER 0 mine=1) and Runes(frost 1) Spell(ICYTOUCH)
+			if TargetDebuffExpires(BLOODPLAGUE 0 mine=1) and Runes(unholy 1) Spell(PLAGUESTRIKE)
+
+			# Обновление болезней через Мор
+			if (TargetDebuffExpires(FROSTFEVER 2 mine=1) or TargetDebuffExpires(BLOODPLAGUE 2 mine=1)) and Runes(blood 1)
+			{
+				Spell(PESTILENCE)
+			}
+
+			# Удар смерти (Death Strike) для конвертации рун в руны смерти
+			if Runes(frost 1) and Runes(unholy 1)
+			{
+				Spell(DEATHSTRIKE)
+			}
+
+			# Удар сердца (Heart Strike)
+			if Runes(blood 1)
+			{
+				Spell(HEARTSTRIKE)
+			}
+
+			# Слив РП в Лик смерти
+			if Mana(more 40)
+			{
+				Spell(DEATHCOIL)
+			}
+		}
 	}
-	
-	if TargetDebuffExpires(BLOODPLAGUE 0 mine=1) and Runes(unholy 1)
-		Spell(PLAGUESTRIKE)
-		
-	Spell(FROSTSTRIKE usable=1)
-	if PetPresent(no) and Glyph(RAISEDEAD) Spell(RAISEDEAD)
-	if Mana(more 39) Spell(DEATHCOIL usable=1)
-	
-	if BuffPresent(FREEZINGFOG) Spell(HOWLINGBLAST)
-	
-	Spell(HORNOFWINTER priority=2)
-
-	unless Runes(frost 1) and Runes(unholy 1) Spell(BLOODTAP)
-	
-	if Runes(blood 2 nodeath=1)
-	{
-		Spell(HEARTSTRIKE priority=2)
-		Spell(BLOODSTRIKE priority=2)
-	}
 }
 
-AddIcon help=offgcd
+# 2. Off-GCD / Cooldowns
+AddIcon size=small help=cd
 {
-	Spell(RUNESTRIKE usable=1)
-}
+	# Кровоотвод при нехватке руны Крови
+	if Runes(blood 0) and Spell(BLOODTAP) Spell(BLOODTAP)
 
-AddIcon help=aoe
-{
-	if Runes(unholy 1) and Runes(frost 1) Spell(HOWLINGBLAST)
-	if TargetDebuffPresent(BLOODPLAGUE) or TargetDebuffPresent(FROSTFEVER)
-		Spell(PESTILENCE usable=1)
-	Spell(DEATHANDECAY usable=1)
-	Spell(BLOODBOIL usable=1)
-}
-
-AddIcon help=cd
-{
-	unless BuffPresent(BONESHIELD) Spell(BONESHIELD)
-	if BuffPresent(FROSTPRESENCE)
+	# Несокрушимая броня во фросте под прок руны
+	if TalentPoints(TALENTHOWLINGBLAST more 0) and Spell(UNBREAKABLEARMOR) and Runes(frost 1)
 	{
 		Spell(UNBREAKABLEARMOR)
-		Spell(ICEBOUNDFORTITUDE)
 	}
-	unless BuffPresent(FROSTPRESENCE)
-	{
-		Spell(SUMMONGARGOYLE)
-		Spell(HYSTERIA)
-	}
-	Item(Trinket0Slot usable=1)
-	Item(Trinket1Slot usable=1)
-	Spell(ARMYOFTHEDEAD)
-}
 
+	# Усиление рунического оружия при полном исчерпании всех рун
+	if Runes(blood 0) and Runes(frost 0) and Runes(unholy 0) and Spell(EMPOWERWEAPON)
+	{
+		Spell(EMPOWERWEAPON)
+	}
+}
 ]]
