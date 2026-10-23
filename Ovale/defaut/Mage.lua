@@ -1,108 +1,196 @@
-Ovale.defaut["MAGE"]=
+Ovale.defaut["MAGE"] =
 [[
-#Modified by Arconer
-Define(TALENTLIVINGBOMB 1852)
-Define(TALENTPIERCINGICE 61)
-Define(TALENTCHILLEDTOTHEBONES 1856)
-Define(TALENTARCANEBARRAGE 1847)
-Define(TALENTIMPROVEDSCORSH 25)
-Define(TALENTBRAINFREEZE 1854)
-
-Define(HOTSTREAK 48108)
-Define(IMPROVEDSCORCH 22959)
-
-Define(PYROBLAST 11366)
-Define(LIVINGBOMB 44457)
-Define(SCORCH 2948)
-Define(FROSTFIREBOLT 44614)
-Define(FIREBALL 133)
-
-Define(FROSTBOLT 116)
-Define(DEEPFREEZE 44572)
-Define(BRAINFREEZE 57761)
-Define(PUSHLIMIT 70753)
-Define(FINGERFROST 44544)
-
+# --- Spells & Abilities Definitions ---
+Define(ARCANEBLAST 42897)
+Define(ARCANEMISSILES 42846)
 Define(ARCANEBARRAGE 44425)
-Define(ARCANEMISSILES 5143)
-Define(ARCANEBLAST 30451)
-Define(ARCANEPOWER 12042)
-Define(MISSILEBARRAGE 44401)
-
-Define(COMBUSTION 11129)
-Define(ICYVEINS 12472)
+Define(FIREBALL 42833)
+Define(PYROBLAST 42891)
+Define(LIVINGBOMB 55360)
+Define(SCORCH 42859)
+Define(FROSTBOLT 42842)
+Define(ICELANCE 42914)
+Define(DEEPFREEZE 44572)
+Define(FROSTFIREBOLT 47610)
+Define(EVOCATION 12051)
+Define(MANAGEM 42985)
 Define(MIRRORIMAGE 55342)
-Define(SUMMONWATERELEMENTAL 31687)
+Define(ICYVEINS 12472)
+Define(ARCANEPOWER 12042)
+Define(COMBUSTION 11129)
 Define(PRESENCEOFMIND 12043)
 
-Define(MAGEARMOR 6117)
-Define(MOLTENARMOR 30482)
-Define(ICEARMOR 7302)
+# Armors & Buffs
+Define(MOLTENARMOR 43046)
+Define(MAGEARMOR 43024)
+Define(ICEARMOR 43008)
 
-AddCheckBox(scorch SpellName(SCORCH) default talent=TALENTIMPROVEDSCORSH)
-AddCheckBox(abarr SpellName(ARCANEBARRAGE) default talent=TALENTARCANEBARRAGE)
+# Buffs, Debuffs & Procs
+Define(ARCANEBLASTDEBUFF 36032) # Stacks of Arcane Blast (1-4)
+Define(MISSILEBARRAGE 44401)    # Fast Arcane Missiles proc
+Define(HOTSTREAK 48108)         # Instant Pyroblast proc
+Define(FIREBALLORB 54354)       # Improved Scorch / Shadow and Flame debuff (+5% crit)
+Define(FINGERSOFFROST 44544)    # Fingers of Frost (charges)
+Define(BRAINFREEZE 44549)       # Fireball! proc in Frost
 
-SpellAddDebuff(PYROBLAST HOTSTREAK=0)
-SpellAddDebuff(ARCANEBLAST ARCANEBLAST=10)
-SpellAddDebuff(ARCANEMISSILES ARCANEBLAST=0)
-SpellAddTargetDebuff(SCORCH IMPROVEDSCORCH=30)
-SpellAddTargetDebuff(LIVINGBOMB LIVINGBOMB=12)
-SpellInfo(MIRRORIMAGE cd=180)
-SpellInfo(ARCANEPOWER cd=84)
-SpellInfo(COMBUSTION cd=180)
+# Talents
+Define(TALENTARCANEBARRAGE 2234)
+Define(TALENTLIVINGBOMB 2236)
+Define(TALENTDEEPFREEZE 2240)
+
+# Spell details for Ovale simulator
+SpellInfo(ARCANEBARRAGE cd=3)
+SpellInfo(LIVINGBOMB duration=12)
+SpellInfo(DEEPFREEZE cd=30)
+SpellInfo(SCORCH duration=30)
+SpellInfo(EVOCATION cd=240)
+SpellInfo(ARCANEPOWER cd=120)
 SpellInfo(ICYVEINS cd=144)
-SpellInfo(SUMMONWATERELEMENTAL cd=180)
+SpellInfo(MIRRORIMAGE cd=180)
+SpellInfo(COMBUSTION cd=120)
 
-ScoreSpells(SCORCH PYROBLAST LIVINGBOMB FROSTFIREBOLT FIREBALL SUMMONWATERELEMENTAL FROSTBOLT ARCANEBLAST ARCANEMISSILES)
+SpellAddTargetDebuff(LIVINGBOMB LIVINGBOMB=12)
+SpellAddTargetDebuff(SCORCH FIREBALLORB=30)
 
+# --- UI Controls ---
+AddListItem(mode raid "Raid / Dungeon" default)
+AddListItem(mode level "Leveling / Solo")
+
+AddListItem(armor molten "Molten Armor (Crit)" default)
+AddListItem(armor mage "Mage Armor (Mana Regen)")
+
+AddCheckBox(scorch "Maintain Scorch / +5% Crit" checked)
+AddCheckBox(burst "Auto Cooldowns (Icy Veins / AP)" checked)
+AddCheckBox(gem "Use Mana Gem on Mana Drop" checked)
+
+# --- Icons Layout ---
+
+# 1. Main Rotation Icon
 AddIcon help=main
 {
-	unless InCombat()
-	{
-		if BuffExpires(MAGEARMOR 400) and BuffExpires(MOLTENARMOR 400) and BuffExpires(ICEARMOR 400)
-		Spell(MOLTENARMOR)
-	}
+	# Проверка поддержания доспеха
+	if List(armor molten) and BuffExpires(MOLTENARMOR 3) Spell(MOLTENARMOR)
+	if List(armor mage) and BuffExpires(MAGEARMOR 3) Spell(MAGEARMOR)
 
-	if TalentPoints(TALENTLIVINGBOMB more 0)
+	# =========================================================
+	# 1. LEVELING / SOLO (Квесты, открытый мир, Фрост кач)
+	# =========================================================
+	if List(mode level)
 	{
-		#Fire spec
-		if TargetDebuffExpires(IMPROVEDSCORCH 6) and CheckBoxOn(scorch) and TargetDeadIn(more 15) Spell(SCORCH)
+		# Прилив сил при глубокой просадке маны
+		if ManaPercent(less 20) and InCombat(no) and Spell(EVOCATION)
+		{
+			Spell(EVOCATION)
+		}
+
+		# Добивание Глубокой заморозкой под прок Пальцев
+		if BuffPresent(FINGERSOFFROST) and Spell(DEEPFREEZE) Spell(DEEPFREEZE)
+
+		# Мгновенная Стрела смещения стужи под прок Заморозки мозгов
+		if BuffPresent(BRAINFREEZE) and Spell(FROSTFIREBOLT) Spell(FROSTFIREBOLT)
+
+		# Ледяное копье под прок Ледяных пальцев на ходу
+		if BuffPresent(FINGERSOFFROST) and Speed(more 0) Spell(ICELANCE)
+
+		# Мгновенная Глыба огня под прок Hot Streak (если вкачан Фаер)
 		if BuffPresent(HOTSTREAK) Spell(PYROBLAST)
-		if TargetDebuffExpires(LIVINGBOMB 0 mine=1) and TargetDeadIn(more 12) Spell(LIVINGBOMB)
-		if TalentPoints(TALENTPIERCINGICE more 0)
-			Spell(FROSTFIREBOLT)
-		if TalentPoints(TALENTPIERCINGICE less 1)
-			Spell(FIREBALL)
-	}
-       
-	if TalentPoints(TALENTCHILLEDTOTHEBONES more 0)
-	{
-		#Frost spec
-		if PetPresent(no) Spell(SUMMONWATERELEMENTAL)
-		if BuffPresent(FINGERFROST) Spell(DEEPFREEZE)
-		if BuffPresent(BRAINFREEZE) and BuffExpires(PUSHLIMIT 1) Spell(FIREBALL)
+
+		# Базовый спам Ледяной стрелы
 		Spell(FROSTBOLT)
 	}
-       
-	if TalentPoints(TALENTARCANEBARRAGE more 0)
-    {
-            #Arcane spec
-                   
-            if BuffPresent(MISSILEBARRAGE) and DebuffPresent(ARCANEBLAST stacks=4)
-                Spell(ARCANEMISSILES)
+
+	# =========================================================
+	# 2. RAID / DUNGEON
+	# =========================================================
+	if List(mode raid)
+	{
+		# -----------------------------------------------------
+		# ARCANE SPEC (Тайная магия)
+		# -----------------------------------------------------
+		if TalentPoints(TALENTARCANEBARRAGE more 0)
+		{
+			# Бурсты Аркана
+			if CheckBoxOn(burst)
+			{
+				if Spell(MIRRORIMAGE) Spell(MIRRORIMAGE)
+				if Spell(ARCANEPOWER) Spell(ARCANEPOWER)
+				if Spell(ICYVEINS) Spell(ICYVEINS)
+				if BuffPresent(ARCANEPOWER) and Spell(PRESENCEOFMIND) Spell(PRESENCEOFMIND)
+			}
+
+			# Слив 4 стаков Arcane Blast в прокачанные стрелы
+			if DebuffExpires(ARCANEBLASTDEBUFF 0 stacks=4) and BuffPresent(MISSILEBARRAGE)
+			{
+				Spell(ARCANEMISSILES)
+			}
+
+			# Слив 4 стаков при отсутствии прока стрел (если мана начинает проседать)
+			if DebuffExpires(ARCANEBLASTDEBUFF 0 stacks=4) and ManaPercent(less 60) and Spell(ARCANEBARRAGE)
+			{
+				Spell(ARCANEBARRAGE)
+			}
+
+			# Набор стаков Чародейской вспышки
 			Spell(ARCANEBLAST)
-    }
+		}
+
+		# -----------------------------------------------------
+		# FIRE SPEC (Огонь / ТТВ)
+		# -----------------------------------------------------
+		if TalentPoints(TALENTLIVINGBOMB more 0)
+		{
+			# Бурст: Зеркальное изображение и Возгорание
+			if CheckBoxOn(burst)
+			{
+				if Spell(MIRRORIMAGE) Spell(MIRRORIMAGE)
+				if Spell(COMBUSTION) Spell(COMBUSTION)
+			}
+
+			# ПРИОРИТЕТ 1: Мгновенная Глыба огня под прок Hot Streak
+			if BuffPresent(HOTSTREAK) Spell(PYROBLAST)
+
+			# ПРИОРИТЕТ 2: Живая бомба (СТРОГО после детонации предыдущей)
+			if TargetDebuffExpires(LIVINGBOMB 0 mine=1) and TargetDeadIn(more 12)
+			{
+				Spell(LIVINGBOMB)
+			}
+
+			# ПРИОРИТЕТ 3: Поддержание дебаффа на +5% крита (Scorch), если нет лока/совы
+			if CheckBoxOn(scorch) and TargetDebuffExpires(FIREBALLORB 2) and Spell(SCORCH)
+			{
+				Spell(SCORCH)
+			}
+
+			# ПРИОРИТЕТ 4: Основной филлер - Огненный шар (или Стрела ледяного огня)
+			Spell(FIREBALL)
+		}
+
+		# -----------------------------------------------------
+		# FROST SPEC (Лед)
+		# -----------------------------------------------------
+		if TalentPoints(TALENTDEEPFREEZE more 0)
+		{
+			if BuffPresent(FINGERSOFFROST) and Spell(DEEPFREEZE) Spell(DEEPFREEZE)
+			if BuffPresent(BRAINFREEZE) and Spell(FROSTFIREBOLT) Spell(FROSTFIREBOLT)
+			if BuffPresent(FINGERSOFFROST) and Speed(more 0) Spell(ICELANCE)
+			Spell(FROSTBOLT)
+		}
+	}
 }
 
-AddIcon help=cd
+# 2. Off-GCD / Mana Management Icon
+AddIcon size=small help=cd
 {
-	Spell(MIRRORIMAGE)
-	if DebuffPresent(ARCANEBLAST stacks=3) Spell(ARCANEPOWER)
-	Spell(COMBUSTION)
-	Spell(ICYVEINS)
-	Spell(PRESENCEOFMIND)
-	Item(Trinket0Slot usable=1)
-	Item(Trinket1Slot usable=1)
-}
+	# Камень маны при просадке ниже 75%
+	if CheckBoxOn(gem) and ManaPercent(less 75) and Item(MANAGEM)
+	{
+		Item(MANAGEM)
+	}
 
+	# Прилив сил во время боя при сильной просадке маны
+	if InCombat(yes) and ManaPercent(less 25) and Spell(EVOCATION)
+	{
+		Spell(EVOCATION)
+	}
+}
 ]]
