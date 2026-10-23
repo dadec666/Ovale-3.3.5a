@@ -60,3 +60,30 @@ All class rotation scripts have been updated from scratch to match 3.3.5a Trinit
 2. Extract the archive into your World of Warcraft directory:
    ```text
    World of Warcraft/Interface/AddOns/
+   ```
+3. Verify that the inner folder inside `Interface/AddOns/` is named exactly `Ovale` (not `Ovale-3.3.5a` or `Ovale-master`):
+   ```text
+   World of Warcraft/Interface/AddOns/Ovale/
+   ├── embeds.xml
+   ├── Ovale.toc
+   ├── Ovale.lua
+   ├── Libs/
+   └── defaut/
+   ```
+4. Start World of Warcraft or reload your UI in-game with `/reload`.
+
+---
+
+## Configuration & Usage
+
+- Type `/ovale` to open the main configuration panel.
+- Left-click or shift-drag lock options via interface settings to reposition action frames.
+- Configure profiles, manage presets, and enable Dual Spec under `/ovale` -> **Profile**.
+- Use the drop-down selectors above the main icons to switch between **Raid** and **Leveling** modes on the fly.
+
+---
+
+## License
+
+This project is licensed under the **GNU General Public License v2.0 (GPL-2.0)**.  
+Original addon created by **Sidoine**. Modernized and maintained by **dadec666**.
