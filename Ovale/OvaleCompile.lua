@@ -211,7 +211,7 @@ local function ParseAddListItem(list,item,text, default)
 	if (not Ovale.listes[list]) then
 		Ovale.listes[list] = {items={},default=nil}
 	end
-	Ovale.listes[list].items[item] = text
+	Ovale.listes[list].items[item] = Ovale.L[text] or text
 	if paramList[1] and paramList[1] == "default" then
 		Ovale.listes[list].default=item
 	end
@@ -224,7 +224,7 @@ local function ParseAddCheckBox(item, text, params)
 		(paramList.glyph and not HasGlyph(paramList.glyph)) then
 		return ""
 	end
-	Ovale.casesACocher[item] = {text = text}
+	Ovale.casesACocher[item] = {text = Ovale.L[text] or text, checked = ...}
 	if  paramList[1] and paramList[1]=="checked" then
 		Ovale.casesACocher[item].checked = true
 	end

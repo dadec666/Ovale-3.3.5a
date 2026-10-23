@@ -64,9 +64,6 @@ AddListItem(curse agony "Curse of Agony" default)
 AddListItem(curse doom "Curse of Doom")
 AddListItem(curse elements "Curse of the Elements")
 
-AddListItem(position ranged "Ranged Position" default)
-AddListItem(position melee "Melee / Close Range")
-
 AddCheckBox(drain "Execute Drain Soul" checked)
 AddCheckBox(lifetap "Maintain Life Tap Buff" checked)
 AddCheckBox(meta "Auto Metamorphosis" checked)
@@ -74,7 +71,7 @@ AddCheckBox(petemp "Demonic Empowerment" checked)
 
 # --- Icons Layout ---
 
-# 1. Основное действие (Основная рамка + авто-очередь следующего заклинания)
+# 1. Основное действие (Основная рамка + авто-очередь следующего каста)
 AddIcon help=main
 {
 	# =========================================================
@@ -134,12 +131,6 @@ AddIcon help=main
 		{
 			if CheckBoxOn(meta) and Spell(METAMORPHOSIS) Spell(METAMORPHOSIS)
 
-			if List(position melee)
-			{
-				if BuffPresent(METAMORPHOSIS) and Spell(IMMOLATIONAURA) Spell(IMMOLATIONAURA)
-				if Spell(SHADOWFLAME) Spell(SHADOWFLAME)
-			}
-
 			if TargetDebuffExpires(IMMOLATE 2.0 mine=1) Spell(IMMOLATE)
 			if TargetDebuffExpires(CORRUPTION 2.0 mine=1) Spell(CORRUPTION)
 
@@ -192,13 +183,13 @@ AddIcon help=main
 
 			if List(curse elements) and TargetDebuffExpires(CURSEOFELEMENTS 3) Spell(CURSEOFELEMENTS)
 			if List(curse doom) and TargetDebuffExpires(CURSEOFDOOM 0 mine=1) and TargetDeadIn(more 60) Spell(CURSEOFDOOM)
-			if List(curse agony) and TargetDebuffExpires(CURSEOFAGONY 2 mine=1) and TargetDebuffExpires(CURSEOFDOOM 0 mine=1) Spell(CURSEOFAGONY)
+			if List(curse agony) and TargetDebuffExpires(CURSEOFAGONY 2 mine=1) Spell(CURSEOFAGONY)
 
 			if TargetDebuffExpires(CORRUPTION 2 mine=1) Spell(CORRUPTION)
 			Spell(INCINERATE)
 		}
 
-		# Fallback для гибридов
+		# Fallback
 		if TargetDebuffExpires(CORRUPTION 2 mine=1) Spell(CORRUPTION)
 		if TargetDebuffExpires(IMMOLATE 2 mine=1) Spell(IMMOLATE)
 		Spell(SHADOWBOLT)
