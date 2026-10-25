@@ -566,7 +566,6 @@ function Ovale:OnEnable()
 	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	self:RegisterEvent("CHAT_MSG_ADDON")
 	self:RegisterEvent("GLYPH_UPDATED")
-	self:RegisterEvent("GLYPH_ADDED")
 	self:RegisterEvent("GLYPH_REMOVED")
 	self:RegisterEvent("SPELL_UPDATE_COOLDOWN")
 

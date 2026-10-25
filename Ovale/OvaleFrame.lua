@@ -280,17 +280,37 @@ local function runImmediateUpdate(self)
 end
 
 -- Коалесценция запросов: пачка событий за одно окно вызывает один пересчёт.
--- Так как OnUpdate может быть приостановлен (вне боя), используется одноразовый
--- C_Timer.After с guard-флагом вместо постоянного тикера.
+-- Так как OnUpdate основного фрейма может быть приостановлен (вне боя),
+-- используется отдельный статический скрытый фрейм-таймер (паттерн 3.3.5a,
+-- C_Timer в этом API не существует). Фрейм показывается на REQUEST_DEBOUNCE
+-- секунд; анонимные замыкания в горячем пути не создаются (без нагрузки на GC).
+local debounceOwner = nil -- Владелец текущего окна дебаунса (nil = окно свободно)
+local debounceElapsed = 0
+
+local timerFrame = CreateFrame("Frame")
+timerFrame:Hide()
+
+local function Timer_OnUpdate(self, elapsed)
+	debounceElapsed = debounceElapsed + elapsed
+	if debounceElapsed < REQUEST_DEBOUNCE then
+		return
+	end
+	-- Окно дебаунса истекло: скрываем таймер и выполняем один отложенный пересчёт.
+	self:Hide()
+	local owner = debounceOwner
+	debounceOwner = nil
+	if owner and owner.needImmediateUpdate then
+		runImmediateUpdate(owner)
+	end
+end
+
+timerFrame:SetScript("OnUpdate", Timer_OnUpdate)
+
 local function scheduleDebounce(self)
-	if self.debounceScheduled then return end
-	self.debounceScheduled = true
-	C_Timer.After(REQUEST_DEBOUNCE, function()
-		self.debounceScheduled = nil
-		if self.needImmediateUpdate then
-			runImmediateUpdate(self)
-		end
-	end)
+	if debounceOwner then return end -- Окно уже открыто, запрос коалесцируется
+	debounceOwner = self
+	debounceElapsed = 0
+	timerFrame:Show()
 end
 
 local function RequestUpdate(self)
