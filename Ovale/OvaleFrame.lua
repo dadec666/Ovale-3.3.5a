@@ -1,4 +1,4 @@
-﻿local AceGUI = LibStub("AceGUI-3.0")
+local AceGUI = LibStub("AceGUI-3.0")
 local Masque = LibStub("Masque", true) or LibStub("LibButtonFacade", true)
 
 local GetTime = GetTime
@@ -14,9 +14,26 @@ local Type = "OvaleFrame"
 local Version = 8
 
 local UPDATE_INTERVAL = 0.05 -- Интервал пересчета симуляции (сек)
+local REQUEST_DEBOUNCE = 0.02 -- Минимальный интервал слияния запросов на немедленный пересчёт (сек)
+
+-- Forward declarations (используются в обработчиках событий ниже)
+local pauseUpdateFrame
+local refreshUpdateFrame
 
 local function frameOnClose(this)
+	local obj = this.obj
+	if obj then
+		pauseUpdateFrame(obj)
+	end
 	this.obj:Fire("OnClose")
+end
+
+-- При прямом Show/Hide фрейма (без обёрток виджета) синхронизируем OnUpdate.
+local function frameOnShow(this)
+	local obj = this.obj
+	if obj then
+		refreshUpdateFrame(obj)
+	end
 end
 
 local function closeOnClick(this)
@@ -60,12 +77,45 @@ local function frameOnUpdate(self, elapsed)
 	self.obj:OnUpdate(elapsed)
 end
 
+-- OnUpdate нужен, когда фрейм виден и есть что обновлять:
+-- компиляция, плавная анимация перемещения или бой.
+-- Вне боя тяжёлый пересчёт выполняется по запросу через дебаунс-таймер RequestUpdate.
+local function updateFrameShouldRun(self)
+	if not self.frame:IsVisible() then return false end
+	if Ovale.needCompile then return true end
+	if Ovale.enCombat then return true end
+	return Ovale.db.profile.apparence.moving == true
+end
+
+local function refreshUpdateFrame(self)
+	if self.updateFrameActive then
+		if not updateFrameShouldRun(self) then
+			self.updateFrame:SetScript("OnUpdate", nil)
+			self.updateFrameActive = false
+		end
+		return
+	end
+	if updateFrameShouldRun(self) then
+		self.updateFrame:SetScript("OnUpdate", frameOnUpdate)
+		self.updateFrameActive = true
+	end
+end
+
+pauseUpdateFrame = function(self)
+	if self.updateFrameActive then
+		self.updateFrame:SetScript("OnUpdate", nil)
+		self.updateFrameActive = false
+	end
+end
+
 local function Hide(self)
 	self.frame:Hide()
+	pauseUpdateFrame(self)
 end
 
 local function Show(self)
 	self.frame:Show()
+	refreshUpdateFrame(self)
 end
 
 local function OnAcquire(self)
@@ -220,14 +270,32 @@ local function OnUpdate(self, elapsed)
 		return
 	end
 
-	self.timeSinceLastCalc = 0
-	self.needImmediateUpdate = false
+	runImmediateUpdate(self)
+end
 
+local function runImmediateUpdate(self)
+	self.needImmediateUpdate = false
+	self.timeSinceLastCalc = 0
 	RecalculateBestAction(self)
+end
+
+-- Коалесценция запросов: пачка событий за одно окно вызывает один пересчёт.
+-- Так как OnUpdate может быть приостановлен (вне боя), используется одноразовый
+-- C_Timer.After с guard-флагом вместо постоянного тикера.
+local function scheduleDebounce(self)
+	if self.debounceScheduled then return end
+	self.debounceScheduled = true
+	C_Timer.After(REQUEST_DEBOUNCE, function()
+		self.debounceScheduled = nil
+		if self.needImmediateUpdate then
+			runImmediateUpdate(self)
+		end
+	end)
 end
 
 local function RequestUpdate(self)
 	self.needImmediateUpdate = true
+	scheduleDebounce(self)
 end
 
 local function UpdateIcons(self)
@@ -364,9 +432,12 @@ local function Constructor()
 	frame:SetScript("OnEnter", frameOnEnter)
 	frame:SetScript("OnLeave", frameOnLeave)
 	frame:SetScript("OnHide", frameOnClose)
+	frame:SetScript("OnShow", frameOnShow)
 
 	self.updateFrame = CreateFrame("Frame", nil, frame)
-	self.updateFrame:SetScript("OnUpdate", frameOnUpdate)
+	-- OnUpdate включается/выключается динамически (см. refreshUpdateFrame/pauseUpdateFrame),
+	-- чтобы не выполнять тяжёлый пересчёт вне боя и когда фрейм скрыт.
+	self.updateFrameActive = false
 	self.updateFrame.obj = self
 
 	self.barre = self.frame:CreateTexture()

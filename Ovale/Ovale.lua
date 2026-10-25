@@ -1,4 +1,4 @@
-﻿local L = LibStub("AceLocale-3.0"):GetLocale("Ovale")
+local L = LibStub("AceLocale-3.0"):GetLocale("Ovale")
 Ovale = LibStub("AceAddon-3.0"):NewAddon("Ovale", "AceEvent-3.0", "AceConsole-3.0")
 
 local Recount = Recount
@@ -567,6 +567,7 @@ function Ovale:OnEnable()
 	self:RegisterEvent("CHAT_MSG_ADDON")
 	self:RegisterEvent("GLYPH_UPDATED")
 	self:RegisterEvent("GLYPH_ADDED")
+	self:RegisterEvent("GLYPH_REMOVED")
 	self:RegisterEvent("SPELL_UPDATE_COOLDOWN")
 
 	if (not self.firstInit) then
@@ -603,6 +604,10 @@ function Ovale:GLYPH_ADDED()
 end
 
 function Ovale:GLYPH_UPDATED()
+	self.needCompile = true
+end
+
+function Ovale:GLYPH_REMOVED()
 	self.needCompile = true
 end
 

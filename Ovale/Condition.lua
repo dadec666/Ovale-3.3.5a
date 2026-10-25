@@ -1,4 +1,4 @@
-﻿local LBCT = LibStub("LibBabble-CreatureType-3.0"):GetLookupTable()
+local LBCT = LibStub("LibBabble-CreatureType-3.0"):GetLookupTable()
 local UnitBuff = UnitBuff
 local UnitDebuff = UnitDebuff
 local UnitClass = UnitClass

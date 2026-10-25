@@ -1,4 +1,4 @@
-﻿local Masque = LibStub("Masque", true) or LibStub("LibButtonFacade", true)
+local Masque = LibStub("Masque", true) or LibStub("LibButtonFacade", true)
 local L = LibStub("AceLocale-3.0"):GetLocale("Ovale")
 
 local PlaySoundFile = PlaySoundFile
